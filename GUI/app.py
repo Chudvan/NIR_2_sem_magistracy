@@ -11,11 +11,13 @@ output_fields = []
 
 
 def create_first_or_third(dim=None, first=True):
-    print(dim, first)
+    #print(dim, first)
     id = 'first_col' if first else 'third_col'
 
     if dim is None:
-        return dbc.Card(id=id)
+        return dbc.Card(dbc.CardBody([]), id=id,
+                        style={"height": "500px",
+                            "border": "none"})
     if dim == 2:
         input_fields = pa_fields
         data = [{f: 0 for f in input_fields}]
@@ -50,7 +52,8 @@ def create_first_or_third(dim=None, first=True):
 
     card = dbc.Card(
         dbc.CardBody(card_bodys_children),
-        id=id
+        id=id,
+        style={"border": "none"}
     )
     return card
 
@@ -61,7 +64,7 @@ def create_second():
             [
                 dbc.Card(
                     style={"height": "33%",
-                           "borderWidth": "0px"}
+                           "border": "none"}
                 ),
                 dbc.Card(
                     dbc.CardBody([
@@ -92,40 +95,19 @@ def create_second():
                             html.Button('Вычислить', id='calculate', n_clicks=0)
                         )]),
                     style={"height": "33%",
-                           "borderWidth": "0px"}
+                           "border": "none"}
                 ),
                 dbc.Card(
                     style={"height": "33%",
-                           "borderWidth": "0px"}
+                           "border": "none"}
                 )
             ]
         ),
-        style={'textAlign': 'center'},
+        style={'textAlign': 'center',
+               "border": "none"},
         id='second_col'
     )
     return second_card
-
-"""
-def create_third(model_type=None):
-    third_card = dbc.Card(
-        dbc.CardBody(
-            [
-                dash_table.DataTable(
-                    id='output-table',
-                    columns=(
-                        [{'id': f, 'name': f} for f in output_fields]
-                    ),
-                    data=[
-                        {f: 0 for f in output_fields}
-                    ]
-                ),
-                dcc.Graph(id='output-graph')
-            ]
-        ),
-        id='third_col'
-    )
-    return third_card
-"""
 
 
 cards = dbc.CardGroup([
@@ -142,9 +124,17 @@ app.layout = cards
     Output('third_col', 'children'),
     Input('dropdown', 'value'))
 def change_widgets(model_type):
-    first = create_first_or_third(int(model_type.split('_')[0]))
-    third = create_first_or_third(int(model_type.split('_')[1]), first=False)
-    return first, third
+    #print(model_type)
+    if model_type is None:
+        first_dim = third_dim = None
+    else:
+        first_dim = int(model_type.split('_')[0])
+        third_dim = int(model_type.split('_')[1])
+
+    first_col = create_first_or_third(first_dim)
+    third_col = create_first_or_third(third_dim, first=False)
+
+    return first_col, third_col
 
 
 if __name__ == '__main__':
