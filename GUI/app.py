@@ -2,6 +2,7 @@ from dash import Dash, dash_table, dcc, html, Input, Output
 import dash_bootstrap_components as dbc
 from tools import pa_fields, seven_fields, facs_fields, model_types
 import plotly.express as px
+import pandas as pd
 
 app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
@@ -9,8 +10,12 @@ input_fields = []
 output_fields = []
 
 
-def create_first(dim=None, editable=False):
-    print(dim)
+def create_first_or_third(dim=None, first=True):
+    print(dim, first)
+    id = 'first_col' if first else 'third_col'
+
+    if dim is None:
+        return dbc.Card(id=id)
     if dim == 2:
         input_fields = pa_fields
         data = [{f: 0 for f in input_fields}]
@@ -21,7 +26,9 @@ def create_first(dim=None, editable=False):
         input_fields = ['Action name', 'Value']
         data = [{input_fields[0]: f, input_fields[1]: 0} for f in facs_fields]
 
-    children = [
+    editable = True if first else False
+
+    card_bodys_children = [
         dash_table.DataTable(
             id='input-table',
             columns=(
@@ -33,15 +40,19 @@ def create_first(dim=None, editable=False):
     ]
 
     if dim == 2 or dim == 7:
-        children.append(dcc.Graph(id='input-graph'))
+        card_bodys_children.append(dcc.Graph(id='input-graph'))
     if dim == 7:
-        children[-1].children =
+        df = pd.DataFrame([[0 for i in range(len(seven_fields))]], columns=seven_fields)
+        df = df.T.rename(columns={0: 'Value'})
+        df['Emotion'] = df.index
+        fig = px.bar(df, x='Emotion', y='Value')
+        card_bodys_children[-1].figure = fig
 
-    first_card = dbc.Card(
-        dbc.CardBody(children),
-        id='first_col'
+    card = dbc.Card(
+        dbc.CardBody(card_bodys_children),
+        id=id
     )
-    return first_card
+    return card
 
 
 def create_second():
@@ -94,7 +105,7 @@ def create_second():
     )
     return second_card
 
-
+"""
 def create_third(model_type=None):
     third_card = dbc.Card(
         dbc.CardBody(
@@ -114,12 +125,13 @@ def create_third(model_type=None):
         id='third_col'
     )
     return third_card
+"""
 
 
 cards = dbc.CardGroup([
-    create_first(),
+    create_first_or_third(),
     create_second(),
-    create_third()
+    create_first_or_third(first=False)
 ])
 
 app.layout = cards
@@ -130,8 +142,8 @@ app.layout = cards
     Output('third_col', 'children'),
     Input('dropdown', 'value'))
 def change_widgets(model_type):
-    first = create_first(model_type)
-    third = create_third(model_type)
+    first = create_first_or_third(int(model_type.split('_')[0]))
+    third = create_first_or_third(int(model_type.split('_')[1]), first=False)
     return first, third
 
 
