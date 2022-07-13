@@ -9,8 +9,8 @@ from itertools import chain,cycle
 
 
 pa_fields = [
-    'Valence',
-    'Arousal'
+    'Valence', # x
+    'Arousal' # y
 ]
 
 seven_fields = [

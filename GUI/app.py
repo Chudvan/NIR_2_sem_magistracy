@@ -43,11 +43,13 @@ def create_first_or_third(dim=None, first=True):
 
     if dim == 2 or dim == 7:
         card_bodys_children.append(dcc.Graph(id='input-graph'))
-    if dim == 7:
-        df = pd.DataFrame([[0 for i in range(len(seven_fields))]], columns=seven_fields)
-        df = df.T.rename(columns={0: 'Value'})
-        df['Emotion'] = df.index
-        fig = px.bar(df, x='Emotion', y='Value')
+        df = pd.DataFrame([[0 for i in range(len(input_fields))]], columns=input_fields)
+        if dim == 2:
+            fig = px.scatter(df, x=input_fields[0], y=input_fields[1])
+        elif dim == 7:
+            df = df.T.rename(columns={0: 'Value'})
+            df['Emotion'] = df.index
+            fig = px.bar(df, x='Emotion', y='Value', range_y=[0, 1])
         card_bodys_children[-1].figure = fig
 
     card = dbc.Card(
