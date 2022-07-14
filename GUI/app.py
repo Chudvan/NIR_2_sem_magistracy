@@ -19,22 +19,23 @@ def create_first_or_third(dim=None, first=True):
                         style={"height": "500px",
                             "border": "none"})
     if dim == 2:
-        input_fields = pa_fields
-        data = [{f: 0 for f in input_fields}]
+        fields = pa_fields
+        data = [{f: 0 for f in fields}]
     elif dim == 7:
-        input_fields = seven_fields
-        data = [{f: 0 for f in input_fields}]
+        fields = seven_fields
+        data = [{f: 0 for f in fields}]
     elif dim == 42:
-        input_fields = ['Action name', 'Value']
-        data = [{input_fields[0]: f, input_fields[1]: 0} for f in facs_fields]
+        fields = ['Action name', 'Value']
+        data = [{fields[0]: f, fields[1]: 0} for f in facs_fields]
 
     editable = True if first else False
+    data_table_id = 'input-table' if first else 'output-table'
 
     card_bodys_children = [
         dash_table.DataTable(
-            id='input-table',
+            id=data_table_id,
             columns=(
-                [{'id': f, 'name': f} for f in input_fields]
+                [{'id': f, 'name': f} for f in fields]
             ),
             data=data,
             editable=editable
@@ -42,10 +43,11 @@ def create_first_or_third(dim=None, first=True):
     ]
 
     if dim == 2 or dim == 7:
-        card_bodys_children.append(dcc.Graph(id='input-graph'))
-        df = pd.DataFrame([[0 for i in range(len(input_fields))]], columns=input_fields)
+        graph_id = 'input-graph' if first else 'output-graph'
+        card_bodys_children.append(dcc.Graph(id=graph_id))
+        df = pd.DataFrame([[0 for i in range(len(fields))]], columns=fields)
         if dim == 2:
-            fig = px.scatter(df, x=input_fields[0], y=input_fields[1])
+            fig = px.scatter(df, x=fields[0], y=fields[1])
         elif dim == 7:
             df = df.T.rename(columns={0: 'Value'})
             df['Emotion'] = df.index
@@ -137,6 +139,18 @@ def change_widgets(model_type):
     third_col = create_first_or_third(third_dim, first=False)
 
     return first_col, third_col
+
+"""
+@app.callback(Output('input-graph', 'figure'),
+              Input('input-table', 'data'),
+              Input('input-table', 'columns'))
+def update_graph(rows, cols):
+    df = pd.DataFrame(rows, columns=[c['name'] for c in cols])
+    print(df)
+    if len(cols) == 2:
+        print(df.iloc[0], df.columns)
+        fig = px.scatter(df, x=df[0], y=input_fields[1])
+"""
 
 
 if __name__ == '__main__':
