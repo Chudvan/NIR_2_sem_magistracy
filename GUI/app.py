@@ -140,17 +140,28 @@ def change_widgets(model_type):
 
     return first_col, third_col
 
-"""
+
 @app.callback(Output('input-graph', 'figure'),
               Input('input-table', 'data'),
               Input('input-table', 'columns'))
 def update_graph(rows, cols):
-    df = pd.DataFrame(rows, columns=[c['name'] for c in cols])
+    cols = [c['name'] for c in cols]
+    color_field = 'color'
+    cols.append(color_field)
+    print(rows)
+    rows[0][color_field] = 'red'
+    center_point = [0, 0, 'white']
+    rows.append(dict(zip(cols, center_point)))
+    print(rows)
+    df = pd.DataFrame(rows, columns=cols)
     print(df)
-    if len(cols) == 2:
-        print(df.iloc[0], df.columns)
-        fig = px.scatter(df, x=df[0], y=input_fields[1])
-"""
+    if len(cols[:-1]) == 2:
+        print(df.iloc[0][0], df.columns)
+        #print(cols[0])
+        fig = px.scatter(df, x=cols[0], y=cols[1],
+                         range_x=[-1, 1], range_y=[-1, 1],
+                         color_discrete_sequence=['white', 'red'])
+    return fig
 
 
 if __name__ == '__main__':
