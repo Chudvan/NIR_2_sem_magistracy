@@ -11,7 +11,6 @@ output_fields = []
 
 
 def create_first_or_third(dim=None, first=True):
-    #print(dim, first)
     id = 'first_col' if first else 'third_col'
 
     if dim is None:
@@ -151,24 +150,31 @@ def change_widgets(model_type):
               Input('input-table', 'columns'))
 def update_graph(rows, cols):
     cols = [c['name'] for c in cols]
-    color_field = 'color'
-    cols.append(color_field)
-    for key in rows[0]:
-        rows[0][key] = float(rows[0][key])
-    rows[0][color_field] = ' '
-    center_point = [0, 0, '']
-    rows.insert(0, dict(zip(cols, center_point)))
-    df = pd.DataFrame(rows, columns=cols)
-    # print(df)
-    if len(cols[:-1]) == 2:
-        fig = px.scatter(df, x=cols[0], y=cols[1],
-                         color=color_field, range_x=[-1, 1], range_y=[-1, 1],
-                         color_discrete_sequence=['white', 'red'])
-        fig.update_xaxes(fixedrange=True)
-        fig.update_yaxes(fixedrange=True)
-        fig.update_traces(marker={'size': 10})
-        fig.update_layout(showlegend=False)
-        fig.update_traces(hovertemplate=cols[0] + ': %{x}<br>' + cols[1] + ': %{y}')
+    if len(cols) == 2 or len(cols) == 7:
+        for key in rows[0]:
+            rows[0][key] = float(rows[0][key])
+        if len(cols) == 2:
+            color_field = 'color'
+            cols.append(color_field)
+            rows[0][color_field] = ''
+            center_point = [0, 0, ' ']
+            rows.insert(0, dict(zip(cols, center_point)))
+            df = pd.DataFrame(rows, columns=cols)
+            fig = px.scatter(df, x=cols[0], y=cols[1],
+                             color=color_field, range_x=[-1, 1], range_y=[-1, 1],
+                             color_discrete_sequence=['white', 'red'])
+            fig.update_xaxes(fixedrange=True)
+            fig.update_yaxes(fixedrange=True)
+            fig.update_traces(marker={'size': 10})
+            fig.update_layout(showlegend=False)
+            fig.update_traces(hovertemplate=cols[0] + ': %{x}<br>' + cols[1] + ': %{y}')
+        elif len(cols) == 7:
+            df = pd.DataFrame(rows, columns=cols)
+            df = df.T.rename(columns={0: 'Value'})
+            df['Emotion'] = df.index
+            fig = px.bar(df, x='Emotion', y='Value', range_y=[0, 1])
+            fig.update_xaxes(fixedrange=True)
+            fig.update_yaxes(fixedrange=True)
     return fig
 
 
