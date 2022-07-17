@@ -2,7 +2,6 @@ from dash import Dash, dash_table, dcc, html, Input, Output
 import dash_bootstrap_components as dbc
 from tools import pa_fields, seven_fields, facs_fields, model_types
 import plotly.express as px
-import plotly.graph_objects as go
 import pandas as pd
 
 app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
@@ -48,8 +47,13 @@ def create_first_or_third(dim=None, first=True):
         card_bodys_children.append(dcc.Graph(id=graph_id))
         df = pd.DataFrame([[0 for i in range(len(fields))]], columns=fields)
         if dim == 2:
-            print('firstly')
-            fig = px.scatter(df, x=fields[0], y=fields[1])
+            fig = px.scatter(df, x=fields[0], y=fields[1], range_x=[-1, 1],
+                             range_y=[-1, 1], color_discrete_sequence=['red'])
+            fig.update_xaxes(fixedrange=True)
+            fig.update_yaxes(fixedrange=True)
+            fig.update_traces(marker={'size': 10})
+            fig.update_layout(showlegend=False)
+            fig.update_traces(hovertemplate=fields[0] + ': %{x}<br>' + fields[1] + ': %{y}')
         elif dim == 7:
             df = df.T.rename(columns={0: 'Value'})
             df['Emotion'] = df.index
@@ -130,7 +134,6 @@ app.layout = cards
     Output('third_col', 'children'),
     Input('dropdown', 'value'))
 def change_widgets(model_type):
-    #print(model_type)
     if model_type is None:
         first_dim = third_dim = None
     else:
@@ -147,21 +150,17 @@ def change_widgets(model_type):
               Input('input-table', 'data'),
               Input('input-table', 'columns'))
 def update_graph(rows, cols):
-    print('here')
     cols = [c['name'] for c in cols]
     color_field = 'color'
     cols.append(color_field)
-    print(rows)
     for key in rows[0]:
         rows[0][key] = float(rows[0][key])
     rows[0][color_field] = ' '
     center_point = [0, 0, '']
     rows.insert(0, dict(zip(cols, center_point)))
-    print(rows)
     df = pd.DataFrame(rows, columns=cols)
-    print(df)
+    # print(df)
     if len(cols[:-1]) == 2:
-        print(df.iloc[0][0], df.columns)
         fig = px.scatter(df, x=cols[0], y=cols[1],
                          color=color_field, range_x=[-1, 1], range_y=[-1, 1],
                          color_discrete_sequence=['white', 'red'])
