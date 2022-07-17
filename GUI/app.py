@@ -2,6 +2,7 @@ from dash import Dash, dash_table, dcc, html, Input, Output
 import dash_bootstrap_components as dbc
 from tools import pa_fields, seven_fields, facs_fields, model_types
 import plotly.express as px
+import plotly.graph_objects as go
 import pandas as pd
 
 app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
@@ -153,8 +154,8 @@ def update_graph(rows, cols):
     print(rows)
     for key in rows[0]:
         rows[0][key] = float(rows[0][key])
-    rows[0][color_field] = 'red'
-    center_point = [0, 0, 'white']
+    rows[0][color_field] = ' '
+    center_point = [0, 0, '']
     rows.insert(0, dict(zip(cols, center_point)))
     print(rows)
     df = pd.DataFrame(rows, columns=cols)
@@ -167,6 +168,8 @@ def update_graph(rows, cols):
         fig.update_xaxes(fixedrange=True)
         fig.update_yaxes(fixedrange=True)
         fig.update_traces(marker={'size': 10})
+        fig.update_layout(showlegend=False)
+        fig.update_traces(hovertemplate=cols[0] + ': %{x}<br>' + cols[1] + ': %{y}')
     return fig
 
 
