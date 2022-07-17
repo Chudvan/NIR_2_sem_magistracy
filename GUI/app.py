@@ -47,6 +47,7 @@ def create_first_or_third(dim=None, first=True):
         card_bodys_children.append(dcc.Graph(id=graph_id))
         df = pd.DataFrame([[0 for i in range(len(fields))]], columns=fields)
         if dim == 2:
+            print('firstly')
             fig = px.scatter(df, x=fields[0], y=fields[1])
         elif dim == 7:
             df = df.T.rename(columns={0: 'Value'})
@@ -145,22 +146,27 @@ def change_widgets(model_type):
               Input('input-table', 'data'),
               Input('input-table', 'columns'))
 def update_graph(rows, cols):
+    print('here')
     cols = [c['name'] for c in cols]
     color_field = 'color'
     cols.append(color_field)
     print(rows)
+    for key in rows[0]:
+        rows[0][key] = float(rows[0][key])
     rows[0][color_field] = 'red'
     center_point = [0, 0, 'white']
-    rows.append(dict(zip(cols, center_point)))
+    rows.insert(0, dict(zip(cols, center_point)))
     print(rows)
     df = pd.DataFrame(rows, columns=cols)
     print(df)
     if len(cols[:-1]) == 2:
         print(df.iloc[0][0], df.columns)
-        #print(cols[0])
         fig = px.scatter(df, x=cols[0], y=cols[1],
-                         range_x=[-1, 1], range_y=[-1, 1],
+                         color=color_field, range_x=[-1, 1], range_y=[-1, 1],
                          color_discrete_sequence=['white', 'red'])
+        fig.update_xaxes(fixedrange=True)
+        fig.update_yaxes(fixedrange=True)
+        fig.update_traces(marker={'size': 10})
     return fig
 
 
