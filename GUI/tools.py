@@ -77,6 +77,15 @@ model_types = [
     {'label': '42 -> 2', 'value': '42_2'},
 ]
 
+type_model_dict = {
+    '2_7': 'model_va_clear',
+    '7_2': 'model_clear_va',
+    '7_42': 'model_clear_facs',
+    '42_7': 'model_facs_clear',
+    '2_42': 'model_va_facs',
+    '42_2': 'model_facs_va'
+}
+
 fields = seven_fields + pa_fields
 
 metrics = ['mean', 'norm', 'stat']
