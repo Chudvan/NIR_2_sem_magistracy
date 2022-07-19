@@ -149,17 +149,24 @@ def change_first_third_cols(model_type):
 
 
 @app.callback(Output('calculate', 'disabled'),
+              Output('upload-model', 'children'),
               Input('dropdown', 'value'))
 def change_disabled_button(model_type):
+    upload_children = html.Div(
+        ["Перетащите или щёлкните, чтобы выбрать модель(ли) для загрузки."]
+    )
     if model_type is None:
         disabled_button = True
     else:
         if getattr(model_facade, type_model_dict[model_type]) is not None:
             disabled_button = False
+            upload_children = html.Div(
+                ["Модель успешно загружена."]
+            )
         else:
             disabled_button = True
 
-    return disabled_button
+    return disabled_button, upload_children
 
 
 @app.callback(Output('input-graph', 'figure'),
