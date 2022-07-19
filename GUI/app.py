@@ -1,4 +1,4 @@
-from dash import Dash, dash_table, dcc, html, Input, Output
+from dash import Dash, dash_table, dcc, html, Input, Output, State
 import dash_bootstrap_components as dbc
 from tools import pa_fields, seven_fields, facs_fields, \
     model_types, type_model_dict
@@ -148,27 +148,6 @@ def change_first_third_cols(model_type):
     return first_col, third_col
 
 
-@app.callback(Output('calculate', 'disabled'),
-              Output('upload-model', 'children'),
-              Input('dropdown', 'value'))
-def change_disabled_button(model_type):
-    upload_children = html.Div(
-        ["Перетащите или щёлкните, чтобы выбрать модель(ли) для загрузки."]
-    )
-    if model_type is None:
-        disabled_button = True
-    else:
-        if getattr(model_facade, type_model_dict[model_type]) is not None:
-            disabled_button = False
-            upload_children = html.Div(
-                ["Модель успешно загружена."]
-            )
-        else:
-            disabled_button = True
-
-    return disabled_button, upload_children
-
-
 @app.callback(Output('input-graph', 'figure'),
               Input('input-table', 'data'),
               Input('input-table', 'columns'))
@@ -200,6 +179,39 @@ def update_graph(rows, cols):
             fig.update_xaxes(fixedrange=True)
             fig.update_yaxes(fixedrange=True)
     return fig
+
+
+@app.callback(Output('dropdown', 'value'),
+              Input('upload-model', 'filename'),
+              Input('upload-model', 'contents'),
+              State('dropdown', 'value'))
+def upload_model_chages(uploaded_filenames, uploaded_file_contents, model_type):
+    if (uploaded_filenames is not None) and (uploaded_file_contents is not None):
+        # N change example logic for VA_CLEAR model
+        model_facade.model_va_clear = 1
+        # down to here
+    return model_type
+
+
+@app.callback(Output('calculate', 'disabled'),
+              Output('upload-model', 'children'),
+              Input('dropdown', 'value'))
+def change_disabled_button(model_type):
+    upload_children = html.Div(
+        ["Перетащите или щёлкните, чтобы выбрать модель(ли) для загрузки."]
+    )
+    if model_type is None:
+        disabled_button = True
+    else:
+        if getattr(model_facade, type_model_dict[model_type]) is not None:
+            disabled_button = False
+            upload_children = html.Div(
+                ["Модель успешно загружена."]
+            )
+        else:
+            disabled_button = True
+
+    return disabled_button, upload_children
 
 
 if __name__ == '__main__':
