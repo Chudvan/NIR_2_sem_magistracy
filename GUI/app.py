@@ -1,10 +1,13 @@
 from dash import Dash, dash_table, dcc, html, Input, Output
 import dash_bootstrap_components as dbc
-from tools import pa_fields, seven_fields, facs_fields, model_types
+from tools import pa_fields, seven_fields, facs_fields, \
+    model_types, type_model_dict
+from model_interfaces import ModelFacade
 import plotly.express as px
 import pandas as pd
 
 app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
+model_facade = ModelFacade()
 
 input_fields = []
 output_fields = []
@@ -101,7 +104,8 @@ def create_second():
                             )
                         ),
                         dbc.Card(
-                            html.Button('Вычислить', id='calculate', n_clicks=0)
+                            html.Button('Вычислить', id='calculate',
+                                        n_clicks=0, disabled=True)
                         )]),
                     style={"height": "33%",
                            "border": "none"}
@@ -131,18 +135,23 @@ app.layout = cards
 @app.callback(
     Output('first_col', 'children'),
     Output('third_col', 'children'),
+    Output('calculate', 'disabled'),
     Input('dropdown', 'value'))
 def change_widgets(model_type):
     if model_type is None:
         first_dim = third_dim = None
+        disabled_button = True
     else:
         first_dim = int(model_type.split('_')[0])
         third_dim = int(model_type.split('_')[1])
-
+        if getattr(model_facade, type_model_dict[model_type]) is not None:
+            disabled_button = False
+        else:
+            disabled_button = True
     first_col = create_first_or_third(first_dim)
     third_col = create_first_or_third(third_dim, first=False)
 
-    return first_col, third_col
+    return first_col, third_col, disabled_button
 
 
 @app.callback(Output('input-graph', 'figure'),
