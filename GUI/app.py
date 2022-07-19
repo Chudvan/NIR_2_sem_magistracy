@@ -135,23 +135,31 @@ app.layout = cards
 @app.callback(
     Output('first_col', 'children'),
     Output('third_col', 'children'),
-    Output('calculate', 'disabled'),
     Input('dropdown', 'value'))
-def change_widgets(model_type):
+def change_first_third_cols(model_type):
     if model_type is None:
         first_dim = third_dim = None
-        disabled_button = True
     else:
         first_dim = int(model_type.split('_')[0])
         third_dim = int(model_type.split('_')[1])
+    first_col = create_first_or_third(first_dim)
+    third_col = create_first_or_third(third_dim, first=False)
+
+    return first_col, third_col
+
+
+@app.callback(Output('calculate', 'disabled'),
+              Input('dropdown', 'value'))
+def change_disabled_button(model_type):
+    if model_type is None:
+        disabled_button = True
+    else:
         if getattr(model_facade, type_model_dict[model_type]) is not None:
             disabled_button = False
         else:
             disabled_button = True
-    first_col = create_first_or_third(first_dim)
-    third_col = create_first_or_third(third_dim, first=False)
 
-    return first_col, third_col, disabled_button
+    return disabled_button
 
 
 @app.callback(Output('input-graph', 'figure'),
