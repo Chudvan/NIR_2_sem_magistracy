@@ -6,6 +6,8 @@ import random
 import matplotlib.pyplot as plt
 from IPython.display import display_html
 from itertools import chain,cycle
+import tarfile
+from model_interfaces import *
 
 
 pa_fields = [
@@ -84,6 +86,17 @@ type_model_dict = {
     '42_7': 'model_facs_clear',
     '2_42': 'model_va_facs',
     '42_2': 'model_facs_va'
+}
+
+type_model_interface_dict = {
+    '2->7 (Neural)': ModelVAClearNeural,
+    '2->7 (Stat)': ModelVAClearStat,
+    '7->2 (Neural)': ModelClearVANeural,
+    '7->2 (Stat)': ModelClearVAStat,
+    '7->42 (Stat)': ModelClearFACSStat,
+    '42->7 (Stat)': ModelFACSClearStat,
+    '2->42 (Stat)': ModelVAFACSStat,
+    '42->2 (Stat)': ModelFACSVAStat
 }
 
 fields = seven_fields + pa_fields
@@ -320,3 +333,14 @@ def display_dfs(*args, titles=cycle(['']), mode='column'):
             raise Exception(f'Unknown mode: {mode}')
         html_str += cur_html_str
     display_html(html_str,raw=True)
+
+def check_model_format(path):
+    filename, file_extension = os.path.splitext(path)
+    if file_extension != '.gz':
+        return False
+    with tarfile.open(path, 'r:gz') as tar:
+        type_filename = 'type'
+        model_type = tar.extractfile(type_filename).read().decode().strip()
+        if model_type not in type_model_interface_dict:
+            return False
+    return True

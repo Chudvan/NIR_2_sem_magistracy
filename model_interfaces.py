@@ -97,3 +97,30 @@ class ModelVAClearNeural(AbstractModel):
         df_Neural = pd.DataFrame(neural_vals, columns=seven_fields)
         return df_Neural
 
+
+class ModelVAClearStat(AbstractModel):
+    pass
+
+
+class ModelClearVANeural(AbstractModel):
+    pass
+
+
+class ModelClearVAStat(AbstractModel):
+    pass
+
+
+class ModelClearFACSStat(AbstractModel):
+    pass
+
+
+class ModelFACSClearStat(AbstractModel):
+    pass
+
+
+class ModelVAFACSStat(AbstractModel):
+    pass
+
+
+class ModelFACSVAStat(AbstractModel):
+    pass
