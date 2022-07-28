@@ -7,6 +7,8 @@ import matplotlib.pyplot as plt
 from IPython.display import display_html
 from itertools import chain,cycle
 import tarfile
+import tempfile
+import base64
 
 
 pa_fields = [
@@ -343,3 +345,10 @@ def get_model_type(filename, path_to_tempfile):
         if model_type not in type_model_interface_dict:
             return False
     return model_type
+
+def create_tempfile_from_content(data):
+    data = data.encode("utf8").split(b";base64,")[1]
+    with tempfile.NamedTemporaryFile(delete=False) as f:
+        f.write(base64.decodebytes(data))
+        path_to_tempfile = f.name
+    return path_to_tempfile
