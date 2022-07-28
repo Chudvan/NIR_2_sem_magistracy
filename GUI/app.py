@@ -1,7 +1,8 @@
 from dash import Dash, dash_table, dcc, html, Input, Output, State
 import dash_bootstrap_components as dbc
 from tools import pa_fields, seven_fields, facs_fields, \
-    model_types, type_model_dict
+    model_types, type_model_dict, create_tempfile_from_content, \
+    get_model_type, delete_tempfiles, get_most_frequent
 from model_interfaces import ModelFacade
 import plotly.express as px
 import pandas as pd
@@ -81,6 +82,8 @@ def create_second():
                 dbc.Card(
                     dbc.CardBody([
                         dbc.Card(
+                            dcc.ConfirmDialog(id='confirm-error',
+                                              message='',),
                             dcc.Dropdown(model_types,
                                          placeholder="Выберите тип модели (преобразования)",
                                          id='dropdown'),
@@ -182,19 +185,48 @@ def update_graph(rows, cols):
 
 
 @app.callback(Output('dropdown', 'value'),
+              Output('confirm-error', 'displayed'),
+              Output('confirm-error', 'message'),
               Input('upload-model', 'filename'),
               Input('upload-model', 'contents'),
               State('dropdown', 'value'))
-def upload_model_chages(uploaded_filenames, uploaded_file_contents, model_type):
+def upload_model_chages(uploaded_filenames, uploaded_file_contents, model_type_dropdown):
+    displayed = False
+    message = ''
     if (uploaded_filenames is not None) and (uploaded_file_contents is not None):
+        tempfile_list = []
+        for name, data in zip(uploaded_filenames, uploaded_file_contents):
+            cur_path_to_tempfile = create_tempfile_from_content(data)
+            model_type_file = get_model_type(name, cur_path_to_tempfile)
+            if not model_type_file:
+                delete_tempfiles(tempfile_list)
+                displayed = True
+                message = f'Модель {name} имеет некорректный формат.'
+                return model_type_dropdown, displayed, message
+            tempfile_list.append((name, cur_path_to_tempfile, model_type_file))
+        unique_model_type = set(map(lambda x: x[2], tempfile_list))
+        if len(unique_model_type) != len(tempfile_list):
+            delete_tempfiles(tempfile_list)
+            displayed = True
+            most_frequent_t = get_most_frequent(tempfile_list)
+            message = f'Вы выбрали несколько моделей одинакового типа. \
+Модель типа {most_frequent_t[0]} встречается {most_frequent_t[1]} раз.'
+            return model_type_dropdown, displayed, message
+        try:
+            cur_values_from_model_facade = {}
+            pass
+            for model_type_file in unique_model_type:
+                pass
+        except Exception:
+            raise('Ошибка!!!') # N
         # N change example logic for VA_CLEAR model
-        model_facade.model_va_clear = 1
+        ## model_facade.model_va_clear = 1
         # down to here
-    return model_type
+    return model_type_dropdown, displayed, message
 
 
 @app.callback(Output('calculate', 'disabled'),
-              Output('upload-model', 'children'),
+              Output('upload-mo del', 'children'),
               Input('dropdown', 'value'))
 def change_disabled_button(model_type):
     upload_children = html.Div(

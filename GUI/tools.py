@@ -352,3 +352,15 @@ def create_tempfile_from_content(data):
         f.write(base64.decodebytes(data))
         path_to_tempfile = f.name
     return path_to_tempfile
+
+def delete_tempfiles(tempfile_list):
+    for path_to_tempfile in list(map(lambda x: x[1], tempfile_list)):
+        os.remove(path_to_tempfile)
+
+def get_most_frequent(tempfile_list):
+    d = {}
+    for t in tempfile_list:
+        if t[2] not in d:
+            d[t[2]] = 0
+        d[t[2]] += 1
+    return sorted(list(d.items()), key=lambda x: x[1])[-1]
