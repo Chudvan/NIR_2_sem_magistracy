@@ -340,8 +340,11 @@ def get_model_type(filename, path_to_tempfile):
     if file_extension != '.gz':
         return False
     with tarfile.open(path_to_tempfile, 'r:gz') as tar:
-        type_filename = 'type'
-        model_type = tar.extractfile(type_filename).read().decode().strip()
+        try:
+            type_filename = 'type'
+            model_type = tar.extractfile(type_filename).read().decode().strip()
+        except KeyError:
+            return False
         if model_type not in type_model_interface_dict:
             return False
     return model_type

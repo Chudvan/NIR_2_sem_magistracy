@@ -77,6 +77,8 @@ def create_second():
     second_card = dbc.Card(
         dbc.CardBody(
             [
+                dcc.ConfirmDialog(id='confirm-error',
+                                  message='', ),
                 dbc.Card(
                     style={"height": "33%",
                            "border": "none"}
@@ -84,8 +86,6 @@ def create_second():
                 dbc.Card(
                     dbc.CardBody([
                         dbc.Card(
-                            dcc.ConfirmDialog(id='confirm-error',
-                                              message='',),
                             dcc.Dropdown(model_types,
                                          placeholder="Выберите тип модели (преобразования)",
                                          id='dropdown'),
@@ -192,9 +192,11 @@ def update_graph(rows, cols):
               Input('upload-model', 'filename'),
               Input('upload-model', 'contents'),
               State('dropdown', 'value'))
-def upload_model_chages(uploaded_filenames, uploaded_file_contents, model_type_dropdown):
+def upload_model_changes(uploaded_filenames, uploaded_file_contents, model_type_dropdown):
+    print('upload_model_changes')
     displayed = False
     message = ''
+    print(uploaded_filenames)
     if (uploaded_filenames is not None) and (uploaded_file_contents is not None):
         tempfile_list = []
         for name, data in zip(uploaded_filenames, uploaded_file_contents):
@@ -226,6 +228,7 @@ def upload_model_chages(uploaded_filenames, uploaded_file_contents, model_type_d
                         type_model_interface_dict[model_type_file])(cur_path_to_tempfile)
                 setattr(model_facade, model_attr_name, model_attr_val)
         except Exception:
+            print('Exception')
             delete_tempfiles(tempfile_list)
             # Откат до cur_attrs_model_facade
             for model_attr_name, model_attr_val in cur_attrs_model_facade.items():
@@ -240,7 +243,7 @@ def upload_model_chages(uploaded_filenames, uploaded_file_contents, model_type_d
 
 
 @app.callback(Output('calculate', 'disabled'),
-              Output('upload-mo del', 'children'),
+              Output('upload-model', 'children'),
               Input('dropdown', 'value'))
 def change_disabled_button(model_type):
     upload_children = html.Div(
