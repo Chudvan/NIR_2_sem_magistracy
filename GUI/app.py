@@ -1,11 +1,13 @@
 from dash import Dash, dash_table, dcc, html, Input, Output, State
 import dash_bootstrap_components as dbc
 from tools import pa_fields, seven_fields, facs_fields, \
-    model_types, type_model_dict, create_tempfile_from_content, \
-    get_model_type, delete_tempfiles, get_most_frequent
-from model_interfaces import ModelFacade
+    model_types, type_model_dict, type_model_interface_dict, \
+    create_tempfile_from_content, get_model_type, delete_tempfiles, \
+    get_most_frequent, type_model_interface_key_to_type_model_key
+from model_interfaces import *
 import plotly.express as px
 import pandas as pd
+import sys
 
 app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 model_facade = ModelFacade()
@@ -204,21 +206,33 @@ def upload_model_chages(uploaded_filenames, uploaded_file_contents, model_type_d
                 message = f'Модель {name} имеет некорректный формат.'
                 return model_type_dropdown, displayed, message
             tempfile_list.append((name, cur_path_to_tempfile, model_type_file))
-        unique_model_type = set(map(lambda x: x[2], tempfile_list))
-        if len(unique_model_type) != len(tempfile_list):
+        unique_model_types = set(map(lambda x: x[2], tempfile_list))
+        if len(unique_model_types) != len(tempfile_list):
             delete_tempfiles(tempfile_list)
             displayed = True
             most_frequent_t = get_most_frequent(tempfile_list)
             message = f'Вы выбрали несколько моделей одинакового типа. \
 Модель типа {most_frequent_t[0]} встречается {most_frequent_t[1]} раз.'
             return model_type_dropdown, displayed, message
+        cur_attrs_model_facade = {}
         try:
-            cur_values_from_model_facade = {}
-            pass
-            for model_type_file in unique_model_type:
-                pass
+            for model_attr in type_model_dict.values():
+                cur_attrs_model_facade[model_attr] = getattr(model_facade, model_attr)
+            for cur_filename, cur_path_to_tempfile, model_type_file in tempfile_list:
+                # Create model_facade.attrs
+                type_model_key = type_model_interface_key_to_type_model_key(model_type_file)
+                model_attr_name = cur_attr = type_model_dict[type_model_key]
+                model_attr_val = getattr(sys.modules[__name__],
+                        type_model_interface_dict[model_type_file])(cur_path_to_tempfile)
+                setattr(model_facade, model_attr_name, model_attr_val)
         except Exception:
-            raise('Ошибка!!!') # N
+            delete_tempfiles(tempfile_list)
+            # Откат до cur_attrs_model_facade
+            for model_attr_name, model_attr_val in cur_attrs_model_facade.items():
+                setattr(model_facade, model_attr_name, model_attr_val)
+            # Window 'Cant create model...'
+            displayed = True
+            message = f'Не удаётся создать модель типа {cur_attr} из файла {cur_filename}.'
         # N change example logic for VA_CLEAR model
         ## model_facade.model_va_clear = 1
         # down to here

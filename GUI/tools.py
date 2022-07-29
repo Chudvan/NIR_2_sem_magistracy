@@ -364,3 +364,6 @@ def get_most_frequent(tempfile_list):
             d[t[2]] = 0
         d[t[2]] += 1
     return sorted(list(d.items()), key=lambda x: x[1])[-1]
+
+def type_model_interface_key_to_type_model_key(key):
+    return '_'.join(key.split(' ')[0].split('->'))
