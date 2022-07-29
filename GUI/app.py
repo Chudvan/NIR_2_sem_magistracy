@@ -226,6 +226,7 @@ def upload_model_changes(uploaded_filenames, uploaded_file_contents, model_type_
                 model_attr_name = cur_attr = type_model_dict[type_model_key]
                 model_attr_val = getattr(sys.modules[__name__],
                         type_model_interface_dict[model_type_file])(cur_path_to_tempfile)
+                print(model_attr_val)
                 setattr(model_facade, model_attr_name, model_attr_val)
         except Exception:
             print('Exception')

@@ -1,5 +1,11 @@
 from abc import ABC, abstractmethod
 from GUI.tools import seven_fields, type_model_dict
+import tarfile
+import os
+import shutil
+
+
+DIR_PATH = '/tmp'
 
 
 class ModelFacade:
@@ -89,8 +95,24 @@ class ModelVAClearNeural(AbstractModel):
         return '2->7 (Neutral)'
 
     def loadmodel(self, path):
+        with tarfile.open(path, 'r:gz') as tar:
+            dir_path = os.path.join(DIR_PATH, 'model_va_clear')
+            for file in tar:
+                if file.name != 'type':
+                    tar.extract(file.name, dir_path)
+        print(os.listdir(dir_path))
+        if len(os.listdir(dir_path)) != 1:
+            raise Exception('Число папок с моделями != 1.')
+        full_path = os.path.join(dir_path, os.listdir(dir_path)[0])
         from tensorflow.keras.models import load_model
-        self._model = load_model(path)
+        try:
+            print('full_path', full_path)
+            self._model = load_model(full_path)
+        except Exception:
+            shutil.rmtree(dir_path)
+            print('model?')
+            raise
+        shutil.rmtree(dir_path)
 
     def predict(self, df_VA):
         neural_vals = self._model.predict(df_VA.values)
