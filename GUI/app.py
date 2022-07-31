@@ -1,9 +1,9 @@
 from dash import Dash, dash_table, dcc, html, Input, Output, State
 import dash_bootstrap_components as dbc
 from tools import pa_fields, seven_fields, facs_fields, \
-    model_types, type_model_dict, type_model_interface_dict, \
-    create_tempfile_from_content, get_model_type, delete_tempfiles, \
-    get_most_frequent, type_model_interface_key_to_type_model_key
+    model_types, type_model_dict, create_tempfile_from_content, \
+    get_model_type, delete_tempfiles, get_most_frequent, \
+    type_model_interface_key_to_type_model_key
 from model_interfaces import *
 import plotly.express as px
 import pandas as pd
@@ -14,7 +14,6 @@ model_facade = ModelFacade()
 
 input_fields = []
 output_fields = []
-
 
 def create_first_or_third(dim=None, first=True):
     id = 'first_col' if first else 'third_col'
@@ -230,7 +229,6 @@ def upload_model_changes(uploaded_filenames, uploaded_file_contents, model_type_
                 model_attr_name = cur_attr = type_model_dict[type_model_key]
                 model_attr_val = getattr(sys.modules[__name__],
                         type_model_interface_dict[model_type_file])(cur_path_to_tempfile)
-                print(model_attr_val)
                 setattr(model_facade, model_attr_name, model_attr_val)
         except Exception:
             # Error while creating one of model_facade's models

@@ -2,11 +2,11 @@ from abc import ABC, abstractmethod
 from GUI.tools import seven_fields, type_model_dict
 import tarfile
 import os
+import sys
 import shutil
 
 
 DIR_PATH = '/tmp'
-
 
 class ModelFacade:
     def __init__(self):
@@ -86,13 +86,20 @@ class AbstractModel(ABC):
         pass
 
 
+abstract_model_inheritors_list = ['ModelVAClearNeural', 'ModelVAClearStat',
+                                  'ModelClearVANeural', 'ModelClearVAStat',
+                                  'ModelClearFACSStat', 'ModelFACSClearStat',
+                                  'ModelVAFACSStat', 'ModelFACSVAStat']
+
+
 class ModelVAClearNeural(AbstractModel):
     def __init__(self, path):
         self.loadmodel(path)
 
+    @classmethod
     @property
-    def type_(self):
-        return '2->7 (Neutral)'
+    def type_(cls):
+        return '2->7 (Neural)'
 
     def loadmodel(self, path):
         with tarfile.open(path, 'r:gz') as tar:
@@ -121,28 +128,55 @@ class ModelVAClearNeural(AbstractModel):
 
 
 class ModelVAClearStat(AbstractModel):
-    pass
+    @classmethod
+    @property
+    def type_(cls):
+        return '2->7 (Stat)'
 
 
 class ModelClearVANeural(AbstractModel):
-    pass
+    @classmethod
+    @property
+    def type_(cls):
+        return '7->2 (Neural)'
 
 
 class ModelClearVAStat(AbstractModel):
-    pass
+    @classmethod
+    @property
+    def type_(cls):
+        return '7->2 (Stat)'
 
 
 class ModelClearFACSStat(AbstractModel):
-    pass
+    @classmethod
+    @property
+    def type_(cls):
+        return '7->42 (Stat)'
 
 
 class ModelFACSClearStat(AbstractModel):
-    pass
+    @classmethod
+    @property
+    def type_(cls):
+        return '42->7 (Stat)'
 
 
 class ModelVAFACSStat(AbstractModel):
-    pass
+    @classmethod
+    @property
+    def type_(cls):
+        return '2->42 (Stat)'
 
 
 class ModelFACSVAStat(AbstractModel):
-    pass
+    @classmethod
+    @property
+    def type_(cls):
+        return '42->2 (Stat)'
+
+
+type_model_interface_dict = {
+    getattr(sys.modules[__name__], model).type_:
+        model for model in abstract_model_inheritors_list
+}

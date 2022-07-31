@@ -89,17 +89,6 @@ type_model_dict = {
     '42_2': 'model_facs_va'
 }
 
-type_model_interface_dict = {
-    '2->7 (Neural)': 'ModelVAClearNeural',
-    '2->7 (Stat)': 'ModelVAClearStat',
-    '7->2 (Neural)': 'ModelClearVANeural',
-    '7->2 (Stat)': 'ModelClearVAStat',
-    '7->42 (Stat)': 'ModelClearFACSStat',
-    '42->7 (Stat)': 'ModelFACSClearStat',
-    '2->42 (Stat)': 'ModelVAFACSStat',
-    '42->2 (Stat)': 'ModelFACSVAStat'
-}
-
 fields = seven_fields + pa_fields
 
 metrics = ['mean', 'norm', 'stat']
@@ -336,6 +325,7 @@ def display_dfs(*args, titles=cycle(['']), mode='column'):
     display_html(html_str,raw=True)
 
 def get_model_type(filename, path_to_tempfile):
+    from model_interfaces import type_model_interface_dict
     _, file_extension = os.path.splitext(filename)
     if file_extension != '.gz':
         return False
