@@ -201,14 +201,17 @@ def upload_model_changes(uploaded_filenames, uploaded_file_contents, model_type_
         tempfile_list = []
         for name, data in zip(uploaded_filenames, uploaded_file_contents):
             cur_path_to_tempfile = create_tempfile_from_content(data)
+            # Check model_type_file
             model_type_file = get_model_type(name, cur_path_to_tempfile)
             if not model_type_file:
                 delete_tempfiles(tempfile_list)
                 displayed = True
                 message = f'Модель {name} имеет некорректный формат.'
                 return model_type_dropdown, displayed, message
+            # Add model_file info
             tempfile_list.append((name, cur_path_to_tempfile, model_type_file))
         unique_model_types = set(map(lambda x: x[2], tempfile_list))
+        # Check all - unique
         if len(unique_model_types) != len(tempfile_list):
             delete_tempfiles(tempfile_list)
             displayed = True
@@ -218,10 +221,11 @@ def upload_model_changes(uploaded_filenames, uploaded_file_contents, model_type_
             return model_type_dropdown, displayed, message
         cur_attrs_model_facade = {}
         try:
+            # Save current model_facade models (attrs)
             for model_attr in type_model_dict.values():
                 cur_attrs_model_facade[model_attr] = getattr(model_facade, model_attr)
+            # Create new model_facade models (attrs)
             for cur_filename, cur_path_to_tempfile, model_type_file in tempfile_list:
-                # Create model_facade.attrs
                 type_model_key = type_model_interface_key_to_type_model_key(model_type_file)
                 model_attr_name = cur_attr = type_model_dict[type_model_key]
                 model_attr_val = getattr(sys.modules[__name__],
@@ -229,6 +233,7 @@ def upload_model_changes(uploaded_filenames, uploaded_file_contents, model_type_
                 print(model_attr_val)
                 setattr(model_facade, model_attr_name, model_attr_val)
         except Exception:
+            # Error while creating one of model_facade's models
             print('Exception')
             delete_tempfiles(tempfile_list)
             # Откат до cur_attrs_model_facade
@@ -237,9 +242,6 @@ def upload_model_changes(uploaded_filenames, uploaded_file_contents, model_type_
             # Window 'Cant create model...'
             displayed = True
             message = f'Не удаётся создать модель типа {cur_attr} из файла {cur_filename}.'
-        # N change example logic for VA_CLEAR model
-        ## model_facade.model_va_clear = 1
-        # down to here
     return model_type_dropdown, displayed, message
 
 
