@@ -9,6 +9,8 @@ from model_interfaces import *
 import plotly.express as px
 import pandas as pd
 import sys
+import traceback
+
 
 app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 model_facade = ModelFacade()
@@ -16,6 +18,7 @@ model_facade = ModelFacade()
 input_fields = []
 output_fields = []
 N_CLICKS = 0
+ERROR_STATE = False
 
 def create_first_or_third(dim=None, first=True):
     id = 'first_col' if first else 'third_col'
@@ -141,8 +144,14 @@ app.layout = cards
 @app.callback(
     Output('first_col', 'children'),
     Output('third_col', 'children'),
-    Input('dropdown', 'value'))
-def change_first_third_cols(model_type):
+    Input('dropdown', 'value'),
+    State('first_col', 'children'),
+    State('third_col', 'children'))
+def change_first_third_cols(model_type, first_col, third_col):
+    global ERROR_STATE
+    if ERROR_STATE:
+        ERROR_STATE = False
+        return first_col, third_col
     if model_type is None:
         first_dim = third_dim = None
     else:
@@ -213,6 +222,7 @@ def upload_model_changes(uploaded_filenames, uploaded_file_contents, model_type_
     print(uploaded_filenames)
     if (uploaded_filenames is not None) and (uploaded_file_contents is not None):
         tempfile_list = []
+        global ERROR_STATE
         for name, data in zip(uploaded_filenames, uploaded_file_contents):
             cur_path_to_tempfile = create_tempfile_from_content(data)
             # Check model_type_file
@@ -221,6 +231,7 @@ def upload_model_changes(uploaded_filenames, uploaded_file_contents, model_type_
                 delete_tempfiles(tempfile_list)
                 displayed = True
                 message = f'Модель {name} имеет некорректный формат.'
+                ERROR_STATE = True
                 return model_type_dropdown, displayed, message
             # Add model_file info
             tempfile_list.append((name, cur_path_to_tempfile, model_type_file))
@@ -232,6 +243,7 @@ def upload_model_changes(uploaded_filenames, uploaded_file_contents, model_type_
             most_frequent_t = get_most_frequent(tempfile_list)
             message = f'Вы выбрали несколько моделей одинакового типа. \
 Модель типа {most_frequent_t[0]} встречается {most_frequent_t[1]} раз.'
+            ERROR_STATE = True
             return model_type_dropdown, displayed, message
         cur_attrs_model_facade = {}
         try:
@@ -243,11 +255,12 @@ def upload_model_changes(uploaded_filenames, uploaded_file_contents, model_type_
                 type_model_key = type_model_interface_key_to_type_model_key(model_type_file)
                 model_attr_name = cur_attr = type_model_dict[type_model_key]
                 model_attr_val = getattr(sys.modules[__name__],
-                        type_model_interface_dict[model_type_file])(cur_path_to_tempfile)
+                        type_model_interface_dict[model_type_file])(cur_filename, cur_path_to_tempfile)
                 setattr(model_facade, model_attr_name, model_attr_val)
         except Exception:
             # Error while creating one of model_facade's models
             print('Exception')
+            print(traceback.format_exc())
             delete_tempfiles(tempfile_list)
             # Откат до cur_attrs_model_facade
             for model_attr_name, model_attr_val in cur_attrs_model_facade.items():
@@ -255,6 +268,7 @@ def upload_model_changes(uploaded_filenames, uploaded_file_contents, model_type_
             # Window 'Cant create model...'
             displayed = True
             message = f'Не удаётся создать модель типа {cur_attr} из файла {cur_filename}.'
+            ERROR_STATE = True
     return model_type_dropdown, displayed, message
 
 
@@ -268,10 +282,11 @@ def change_disabled_button(model_type):
     if model_type is None:
         disabled_button = True
     else:
-        if getattr(model_facade, type_model_dict[model_type]) is not None:
+        model_attr_val = getattr(model_facade, type_model_dict[model_type])
+        if model_attr_val is not None:
             disabled_button = False
             upload_children = html.Div(
-                ["Модель успешно загружена."]
+                [f"Модель '{model_attr_val.filename}' успешно загружена."]
             )
         else:
             disabled_button = True

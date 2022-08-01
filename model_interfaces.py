@@ -72,11 +72,25 @@ class ModelFacade:
 
 class AbstractModel(ABC):
     _model = None
+    _file_name = None
 
+    def __init__(self, filename, path):
+        self.filename = filename
+        self.loadmodel(path)
+
+    @classmethod
     @property
     @abstractmethod
-    def type_(self):
+    def type_(cls):
         pass
+
+    @property
+    def filename(self):
+        return self._file_name
+
+    @filename.setter
+    def filename(self, val):
+        self._file_name = val
 
     @abstractmethod
     def loadmodel(self, path):
@@ -94,9 +108,6 @@ abstract_model_inheritors_list = ['ModelVAClearNeural', 'ModelVAClearStat',
 
 
 class ModelVAClearNeural(AbstractModel):
-    def __init__(self, path):
-        self.loadmodel(path)
-
     @classmethod
     @property
     def type_(cls):
