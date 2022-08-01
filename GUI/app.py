@@ -3,7 +3,8 @@ import dash_bootstrap_components as dbc
 from tools import pa_fields, seven_fields, facs_fields, \
     model_types, type_model_dict, create_tempfile_from_content, \
     get_model_type, delete_tempfiles, get_most_frequent, \
-    type_model_interface_key_to_type_model_key
+    type_model_interface_key_to_type_model_key, data_table_to_data_frame, \
+    data_frame_to_data_table
 from model_interfaces import *
 import plotly.express as px
 import pandas as pd
@@ -14,6 +15,7 @@ model_facade = ModelFacade()
 
 input_fields = []
 output_fields = []
+N_CLICKS = 0
 
 def create_first_or_third(dim=None, first=True):
     id = 'first_col' if first else 'third_col'
@@ -262,6 +264,24 @@ def change_disabled_button(model_type):
             disabled_button = True
 
     return disabled_button, upload_children
+
+
+@app.callback(Output('output-table', 'data'),
+              Input('calculate', 'n_clicks'),
+              State('dropdown', 'value'),
+              State('input-table', 'data'),
+              State('input-table', 'columns'))
+def update_output_table(n_clicks, model_type_dropdown, rows, cols):
+    global N_CLICKS
+    if n_clicks != N_CLICKS:
+        type_model = model_type_dropdown.replace(' -> ', '_')
+        model_attr_name = type_model_dict[type_model]
+        model_attr_val = getattr(model_facade, model_attr_name)
+        df = data_table_to_data_frame(rows, cols)
+        output_df = model_attr_val.predict(df)
+        data = data_frame_to_data_table(output_df)
+        N_CLICKS = n_clicks
+    return data
 
 
 if __name__ == '__main__':

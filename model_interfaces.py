@@ -1,9 +1,10 @@
 from abc import ABC, abstractmethod
-from GUI.tools import seven_fields, type_model_dict
+from GUI.tools import seven_fields, type_model_dict, change_df_accuracy
 import tarfile
 import os
 import sys
 import shutil
+import pandas as pd
 
 
 DIR_PATH = '/tmp'
@@ -113,17 +114,16 @@ class ModelVAClearNeural(AbstractModel):
         full_path = os.path.join(dir_path, os.listdir(dir_path)[0])
         from tensorflow.keras.models import load_model
         try:
-            print('full_path', full_path)
             self._model = load_model(full_path)
         except Exception:
             shutil.rmtree(dir_path)
-            print('model?')
             raise
         shutil.rmtree(dir_path)
 
     def predict(self, df_VA):
         neural_vals = self._model.predict(df_VA.values)
         df_Neural = pd.DataFrame(neural_vals, columns=seven_fields)
+        df_Neural = change_df_accuracy(df_Neural)
         return df_Neural
 
 

@@ -360,3 +360,22 @@ def get_most_frequent(tempfile_list):
 
 def type_model_interface_key_to_type_model_key(key):
     return '_'.join(key.split(' ')[0].split('->'))
+
+def data_table_to_data_frame(rows, cols):
+    cols = [c['name'] for c in cols]
+    print(rows, cols)
+    df = pd.DataFrame(rows, columns=cols)
+    for c in cols:
+        df[c] = df[c].apply(lambda x: float(x))
+    return df
+
+def data_frame_to_data_table(df):
+    l = []
+    for row in df.iterrows():
+        l.append(dict(row[1]))
+    return l
+
+def change_df_accuracy(df, digits=2):
+    for c in df.columns:
+        df[c] = df[c].apply(lambda x: f"{x:.2f}")
+    return df
