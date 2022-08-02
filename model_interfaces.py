@@ -5,6 +5,7 @@ import os
 import sys
 import shutil
 import pandas as pd
+from tensorflow.keras.models import load_model
 
 
 DIR_PATH = '/tmp'
@@ -123,7 +124,6 @@ class ModelVAClearNeural(AbstractModel):
         if len(os.listdir(dir_path)) != 1:
             raise Exception('Число папок с моделями != 1.')
         full_path = os.path.join(dir_path, os.listdir(dir_path)[0])
-        from tensorflow.keras.models import load_model
         try:
             self._model = load_model(full_path)
         except Exception:
