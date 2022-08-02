@@ -227,6 +227,7 @@ def upload_model_changes(uploaded_filenames, uploaded_file_contents, model_type_
             cur_path_to_tempfile = create_tempfile_from_content(data)
             # Check model_type_file
             model_type_file = get_model_type(name, cur_path_to_tempfile)
+            tempfile_list.append((name, cur_path_to_tempfile, model_type_file))
             if not model_type_file:
                 delete_tempfiles(tempfile_list)
                 displayed = True
@@ -234,7 +235,6 @@ def upload_model_changes(uploaded_filenames, uploaded_file_contents, model_type_
                 ERROR_STATE = True
                 return model_type_dropdown, displayed, message
             # Add model_file info
-            tempfile_list.append((name, cur_path_to_tempfile, model_type_file))
         unique_model_types = set(map(lambda x: x[2], tempfile_list))
         # Check all - unique
         if len(unique_model_types) != len(tempfile_list):
@@ -257,6 +257,7 @@ def upload_model_changes(uploaded_filenames, uploaded_file_contents, model_type_
                 model_attr_val = getattr(sys.modules[__name__],
                         type_model_interface_dict[model_type_file])(cur_filename, cur_path_to_tempfile)
                 setattr(model_facade, model_attr_name, model_attr_val)
+                delete_tempfiles(tempfile_list)
         except Exception:
             # Error while creating one of model_facade's models
             print('Exception')
