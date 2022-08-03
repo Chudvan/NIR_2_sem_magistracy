@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
-from GUI.tools import seven_fields, type_model_dict, change_df_accuracy
+from GUI.tools import seven_fields, type_model_dict, change_df_accuracy, \
+    type_model_interface_key_to_type_model_key
 import tarfile
 import os
 import sys
@@ -9,6 +10,7 @@ from tensorflow.keras.models import load_model
 
 
 DIR_PATH = '/tmp'
+TYPE_FILENAME = 'type'
 
 class ModelFacade:
     def __init__(self):
@@ -116,11 +118,12 @@ class ModelVAClearNeural(AbstractModel):
 
     def loadmodel(self, path):
         with tarfile.open(path, 'r:gz') as tar:
-            dir_path = os.path.join(DIR_PATH, 'model_va_clear')
+            type_model = type_model_interface_key_to_type_model_key(self.type_)
+            model_attr = type_model_dict[type_model]
+            dir_path = os.path.join(DIR_PATH, model_attr)
             for file in tar:
-                if file.name != 'type':
+                if file.name != TYPE_FILENAME:
                     tar.extract(file.name, dir_path)
-        print(os.listdir(dir_path))
         if len(os.listdir(dir_path)) != 1:
             raise Exception('Число папок с моделями != 1.')
         full_path = os.path.join(dir_path, os.listdir(dir_path)[0])
