@@ -193,7 +193,16 @@ class ModelVAClearStat(AbstractModel):
         shutil.rmtree(dir_path)
 
     def predict(self, df_VA):
-        pass
+        model_attrs = self.get_model_attrs()
+        seven_dict = {}
+        for model_attr in model_attrs:
+            field = model_attr[len(self._MODEL_ATTR_PREFIX):].capitalize()
+            seven_dict[field] = getattr(self, model_attr).predict(df_VA.values)
+        seven_vals = [[seven_dict[field][0][i] for i, field in enumerate(seven_fields)]] # N без [0][i] для correct
+        #seven_dict = {field: seven_dict[field][0][i] for i, field in enumerate(seven_fields)} # по сути, не нужно уже
+        df_seven = pd.DataFrame(seven_vals, columns=seven_fields)
+        df_seven = change_df_accuracy(df_seven)
+        return df_seven
 
 
 class ModelClearVANeural(AbstractModel):

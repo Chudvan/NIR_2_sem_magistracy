@@ -363,7 +363,6 @@ def type_model_interface_key_to_type_model_key(key):
 
 def data_table_to_data_frame(rows, cols):
     cols = [c['name'] for c in cols]
-    print(rows, cols)
     df = pd.DataFrame(rows, columns=cols)
     for c in cols:
         df[c] = df[c].apply(lambda x: float(x))
