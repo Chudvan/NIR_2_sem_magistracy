@@ -170,19 +170,24 @@ def change_first_third_cols(model_type, first_col, third_col):
               Input('input-table', 'data'),
               Input('input-table', 'columns'),
               Input('output-table', 'data'),
-              Input('output-table', 'columns'))
+              Input('output-table', 'columns'),
+              State('input-graph', 'style'),
+              State('output-graph', 'style'))
 def update_graphs(rows_input, cols_input, rows_output,
-                       cols_output):
+                       cols_output, style_input, style_output):
     figures = []
     for i in range(2):
         if i == 0:
             rows = rows_input
             cols = cols_input
+            style = style_input
         else:
             rows = rows_output
             cols = cols_output
-        cols = [c['name'] for c in cols]
-        if len(cols) == 2 or len(cols) == 7:
+            style = style_output
+        if style is None:
+            # dim == 2 or dim == 7
+            cols = [c['name'] for c in cols]
             for key in rows[0]:
                 rows[0][key] = float(rows[0][key])
             if len(cols) == 2:
@@ -207,7 +212,10 @@ def update_graphs(rows_input, cols_input, rows_output,
                 fig = px.bar(df, x='Emotion', y='Value', range_y=[0, 1])
                 fig.update_xaxes(fixedrange=True)
                 fig.update_yaxes(fixedrange=True)
-            figures.append(fig)
+        else:
+            # dim == 42
+            fig = {'data': None, 'layout': None}
+        figures.append(fig)
     return figures
 
 
