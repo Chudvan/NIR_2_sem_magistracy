@@ -7,10 +7,12 @@ import sys
 import shutil
 import pandas as pd
 from tensorflow.keras.models import load_model
+import pickle
 
 
 DIR_PATH = '/tmp'
 TYPE_FILENAME = 'type'
+MODEL_ATTR_PREFIX = '_model_'
 
 class ModelFacade:
     def __init__(self):
@@ -149,10 +151,44 @@ class ModelVAClearNeural(AbstractModel):
 
 
 class ModelVAClearStat(AbstractModel):
+    _model_neutral = None
+    _model_happy = None
+    _model_sad = None
+    _model_angry = None
+    _model_surprised = None
+    _model_scared = None
+    _model_disgusted = None
+
     @classmethod
     @property
     def type_(cls):
         return '2->7 (Stat)'
+
+    def loadmodel(self, path):
+        dir_path = self.unzip_model(path)
+        model_attrs = []
+        for attr in dir(self):
+            if attr.startswith(MODEL_ATTR_PREFIX):
+                model_attrs.append(attr)
+        if len(os.listdir(dir_path)) != len(model_attrs):
+            raise Exception(f'Число моделей != {len(model_attrs)}.')
+        for model_attr in model_attrs:
+            model_filename = model_attr[1:] + '.pkl'
+            full_path = os.path.join(dir_path, model_filename)
+            if not os.path.exists(full_path):
+                shutil.rmtree(dir_path)
+                raise Exception(f'Модель {model_filename} отсутствует в файле {self.filename}.')
+            with open(full_path, 'rb') as file:
+                try:
+                    pickle_model = pickle.load(file)
+                    setattr(self, model_attr, pickle_model)
+                except pickle.UnpicklingError:
+                    shutil.rmtree(dir_path)
+                    raise Exception(f'Не удаётся создать модель {model_filename}.')
+        shutil.rmtree(dir_path)
+
+    def predict(self, df_VA):
+        pass
 
 
 class ModelClearVANeural(AbstractModel):
