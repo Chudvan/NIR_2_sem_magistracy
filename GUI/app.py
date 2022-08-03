@@ -51,8 +51,8 @@ def create_first_or_third(dim=None, first=True):
         )
     ]
 
+    graph_id = 'input-graph' if first else 'output-graph'
     if dim == 2 or dim == 7:
-        graph_id = 'input-graph' if first else 'output-graph'
         card_bodys_children.append(dcc.Graph(id=graph_id))
         df = pd.DataFrame([[0 for i in range(len(fields))]], columns=fields)
         if dim == 2:
@@ -68,6 +68,8 @@ def create_first_or_third(dim=None, first=True):
             df['Emotion'] = df.index
             fig = px.bar(df, x='Emotion', y='Value', range_y=[0, 1])
         card_bodys_children[-1].figure = fig
+    elif dim == 42:
+        card_bodys_children.append(dcc.Graph(id=graph_id, style={'display': 'none'}))
 
     card = dbc.Card(
         dbc.CardBody(card_bodys_children),
@@ -169,7 +171,7 @@ def change_first_third_cols(model_type, first_col, third_col):
               Input('input-table', 'columns'),
               Input('output-table', 'data'),
               Input('output-table', 'columns'))
-def update_input_graph(rows_input, cols_input, rows_output,
+def update_graphs(rows_input, cols_input, rows_output,
                        cols_output):
     figures = []
     for i in range(2):
