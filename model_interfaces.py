@@ -114,7 +114,7 @@ class AbstractModel(ABC):
     def loadmodel(self, path):
         pass
 
-    def get_model_attrs(self):
+    def _get_model_attrs(self):
         model_attrs = []
         for attr in dir(self):
             if attr.startswith(self._MODEL_ATTR_PREFIX):
@@ -151,10 +151,10 @@ class ModelVAClearNeural(AbstractModel):
         shutil.rmtree(dir_path)
 
     def predict(self, df_VA):
-        neural_vals = self._model.predict(df_VA.values)
-        df_Neural = pd.DataFrame(neural_vals, columns=seven_fields)
-        df_Neural = change_df_accuracy(df_Neural)
-        return df_Neural
+        seven_vals = self._model.predict(df_VA.values)
+        df_seven = pd.DataFrame(seven_vals, columns=seven_fields)
+        df_seven = change_df_accuracy(df_seven)
+        return df_seven
 
 
 class ModelVAClearStat(AbstractModel):
@@ -174,7 +174,7 @@ class ModelVAClearStat(AbstractModel):
 
     def loadmodel(self, path):
         dir_path = self.unzip_model(path)
-        model_attrs = self.get_model_attrs()
+        model_attrs = self._get_model_attrs()
         if len(os.listdir(dir_path)) != len(model_attrs):
             raise Exception(f'Число моделей != {len(model_attrs)}.')
         for model_attr in model_attrs:
@@ -193,7 +193,7 @@ class ModelVAClearStat(AbstractModel):
         shutil.rmtree(dir_path)
 
     def predict(self, df_VA):
-        model_attrs = self.get_model_attrs()
+        model_attrs = self._get_model_attrs()
         seven_dict = {}
         for model_attr in model_attrs:
             field = model_attr[len(self._MODEL_ATTR_PREFIX):].capitalize()
