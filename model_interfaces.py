@@ -12,7 +12,6 @@ import pickle
 
 DIR_PATH = '/tmp'
 TYPE_FILENAME = 'type'
-MODEL_ATTR_PREFIX = '_model_'
 
 class ModelFacade:
     def __init__(self):
@@ -78,6 +77,7 @@ class ModelFacade:
 class AbstractModel(ABC):
     _model = None
     _file_name = None
+    _MODEL_ATTR_PREFIX = '_model'
 
     def __init__(self, filename, path):
         self.filename = filename
@@ -113,6 +113,13 @@ class AbstractModel(ABC):
     @abstractmethod
     def loadmodel(self, path):
         pass
+
+    def get_model_attrs(self):
+        model_attrs = []
+        for attr in dir(self):
+            if attr.startswith(self._MODEL_ATTR_PREFIX):
+                model_attrs.append(attr)
+        return model_attrs
 
     @abstractmethod
     def predict(self, input_):
@@ -158,6 +165,7 @@ class ModelVAClearStat(AbstractModel):
     _model_surprised = None
     _model_scared = None
     _model_disgusted = None
+    _MODEL_ATTR_PREFIX = '_model_'
 
     @classmethod
     @property
@@ -166,10 +174,7 @@ class ModelVAClearStat(AbstractModel):
 
     def loadmodel(self, path):
         dir_path = self.unzip_model(path)
-        model_attrs = []
-        for attr in dir(self):
-            if attr.startswith(MODEL_ATTR_PREFIX):
-                model_attrs.append(attr)
+        model_attrs = self.get_model_attrs()
         if len(os.listdir(dir_path)) != len(model_attrs):
             raise Exception(f'Число моделей != {len(model_attrs)}.')
         for model_attr in model_attrs:
