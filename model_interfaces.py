@@ -82,6 +82,19 @@ class AbstractModel(ABC):
         self.loadmodel(path)
 
     @classmethod
+    def unzip_model(cls, path):
+        with tarfile.open(path, 'r:gz') as tar:
+            type_model = type_model_interface_key_to_type_model_key(cls.type_)
+            model_attr = type_model_dict[type_model]
+            dir_path = os.path.join(DIR_PATH, model_attr)
+            if os.path.exists(dir_path):
+                shutil.rmtree(dir_path)
+            for file in tar:
+                if file.name != TYPE_FILENAME:
+                    tar.extract(file.name, dir_path)
+        return dir_path
+
+    @classmethod
     @property
     @abstractmethod
     def type_(cls):
@@ -117,13 +130,7 @@ class ModelVAClearNeural(AbstractModel):
         return '2->7 (Neural)'
 
     def loadmodel(self, path):
-        with tarfile.open(path, 'r:gz') as tar:
-            type_model = type_model_interface_key_to_type_model_key(self.type_)
-            model_attr = type_model_dict[type_model]
-            dir_path = os.path.join(DIR_PATH, model_attr)
-            for file in tar:
-                if file.name != TYPE_FILENAME:
-                    tar.extract(file.name, dir_path)
+        dir_path = self.unzip_model(path)
         if len(os.listdir(dir_path)) != 1:
             raise Exception('Число папок с моделями != 1.')
         full_path = os.path.join(dir_path, os.listdir(dir_path)[0])
