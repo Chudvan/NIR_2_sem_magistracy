@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from GUI.tools import seven_fields, type_model_dict, change_df_accuracy, \
-    type_model_interface_key_to_type_model_key
+    type_model_interface_key_to_type_model_key, pa_fields
 import tarfile
 import os
 import sys
@@ -132,6 +132,19 @@ abstract_model_inheritors_list = ['ModelVAClearNeural', 'ModelVAClearStat',
                                   'ModelVAFACSStat', 'ModelFACSVAStat']
 
 
+def load_neural_model(self, path):
+    dir_path = self.unzip_model(path)
+    if len(os.listdir(dir_path)) != 1:
+        raise Exception('Число папок с моделями != 1.')
+    full_path = os.path.join(dir_path, os.listdir(dir_path)[0])
+    try:
+        self._model = load_model(full_path)
+    except Exception:
+        shutil.rmtree(dir_path)
+        raise
+    shutil.rmtree(dir_path)
+
+
 class ModelVAClearNeural(AbstractModel):
     @classmethod
     @property
@@ -139,16 +152,7 @@ class ModelVAClearNeural(AbstractModel):
         return '2->7 (Neural)'
 
     def loadmodel(self, path):
-        dir_path = self.unzip_model(path)
-        if len(os.listdir(dir_path)) != 1:
-            raise Exception('Число папок с моделями != 1.')
-        full_path = os.path.join(dir_path, os.listdir(dir_path)[0])
-        try:
-            self._model = load_model(full_path)
-        except Exception:
-            shutil.rmtree(dir_path)
-            raise
-        shutil.rmtree(dir_path)
+        load_neural_model(self, path)
 
     def predict(self, df_VA):
         seven_vals = self._model.predict(df_VA.values)
@@ -210,6 +214,15 @@ class ModelClearVANeural(AbstractModel):
     @property
     def type_(cls):
         return '7->2 (Neural)'
+
+    def loadmodel(self, path):
+        load_neural_model(self, path)
+
+    def predict(self, df_seven):
+        VA_vals = self._model.predict(df_seven[df_seven.columns[:2]].values) # N без [df_seven.columns[:2]] для correct
+        df_VA = pd.DataFrame([VA_vals[0][:2]], columns=pa_fields) # N Просто VA_vals для correct
+        df_VA = change_df_accuracy(df_VA)
+        return df_VA
 
 
 class ModelClearVAStat(AbstractModel):
