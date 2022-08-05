@@ -12,6 +12,8 @@ import pickle
 
 DIR_PATH = '/tmp'
 TYPE_FILENAME = 'type'
+FACADE_CLASS_NAME = 'ModelFacade'
+MODEL_CLASS_PREFIX = 'Model'
 
 class ModelFacade:
     def __init__(self):
@@ -126,12 +128,6 @@ class AbstractModel(ABC):
         pass
 
 
-abstract_model_inheritors_list = ['ModelVAClearNeural', 'ModelVAClearStat',
-                                  'ModelClearVANeural', 'ModelClearVAStat',
-                                  'ModelClearFACSStat', 'ModelFACSClearStat',
-                                  'ModelVAFACSStat', 'ModelFACSVAStat']
-
-
 def load_neural_model(self, path):
     dir_path = self.unzip_model(path)
     if len(os.listdir(dir_path)) != 1:
@@ -232,11 +228,11 @@ class ModelClearVAStat(AbstractModel):
         return '7->2 (Stat)'
 
 
-class ModelClearFACSStat(AbstractModel):
+class ModelClearFACSNeural(AbstractModel):
     @classmethod
     @property
     def type_(cls):
-        return '7->42 (Stat)'
+        return '7->42 (Neural)'
 
 
 class ModelFACSClearStat(AbstractModel):
@@ -259,6 +255,17 @@ class ModelFACSVAStat(AbstractModel):
     def type_(cls):
         return '42->2 (Stat)'
 
+
+def create_abstract_model_inheritors_list():
+    abstract_model_inheritors_list = [
+        class_ for class_ in dir(sys.modules[__name__])
+        if class_.startswith(MODEL_CLASS_PREFIX)
+    ]
+    i = abstract_model_inheritors_list.index(FACADE_CLASS_NAME)
+    abstract_model_inheritors_list.pop(i)
+    return abstract_model_inheritors_list
+
+abstract_model_inheritors_list = create_abstract_model_inheritors_list()
 
 type_model_interface_dict = {
     getattr(sys.modules[__name__], model).type_:
