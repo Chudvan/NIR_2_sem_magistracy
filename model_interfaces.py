@@ -222,6 +222,10 @@ class ModelClearVANeural(AbstractModel):
 
 
 class ModelClearVAStat(AbstractModel):
+    _model_valence = None
+    _model_arousal = None
+    _MODEL_ATTR_PREFIX = '_model_'
+
     @classmethod
     @property
     def type_(cls):
@@ -229,6 +233,19 @@ class ModelClearVAStat(AbstractModel):
 
 
 class ModelClearFACSNeural(AbstractModel):
+    _model_happy = None
+    _model_sad = None
+    _model_angry = None
+    _model_surprised = None
+    _model_scared = None
+    _model_disgusted = None
+    _model_contempt = None
+    _model_other_facs = None
+    _model_sum_01_02_26 = None
+    _model_sum_04_05_07 = None
+    _model_sum_12_15 = None
+    _MODEL_ATTR_PREFIX = '_model_'
+
     @classmethod
     @property
     def type_(cls):
@@ -236,20 +253,37 @@ class ModelClearFACSNeural(AbstractModel):
 
 
 class ModelFACSClearStat(AbstractModel):
+    _model_neutral = None
+    _model_happy = None
+    _model_sad = None
+    _model_angry = None
+    _model_surprised = None
+    _model_scared = None
+    _model_disgusted = None
+    _MODEL_ATTR_PREFIX = '_model_'
+
     @classmethod
     @property
     def type_(cls):
         return '42->7 (Stat)'
 
 
-class ModelVAFACSStat(AbstractModel):
+class ModelVAFACS(AbstractModel):
+    _model_va_clear = None
+    _model_clear_facs = None
+    _MODEL_ATTR_PREFIX = '_model_'
+
     @classmethod
     @property
     def type_(cls):
         return '2->42 (Stat)'
 
 
-class ModelFACSVAStat(AbstractModel):
+class ModelFACSVA(AbstractModel):
+    _model_facs_clear = None
+    _model_clear_va = None
+    _MODEL_ATTR_PREFIX = '_model_'
+
     @classmethod
     @property
     def type_(cls):
