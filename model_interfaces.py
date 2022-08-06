@@ -257,7 +257,11 @@ class ModelClearVAStat(AbstractModel):
         load_models(self, path, neural=False)
 
     def predict(self, df_seven):
-        pass
+        v = self._model_valence.predict(df_seven[df_seven.columns[:2]].values)[0][0] # N без [df_seven.columns[:2]] и мб без [0] для correct
+        a = self._model_arousal.predict(df_seven[df_seven.columns[2:4]].values)[0][0] # аналогично
+        df_VA = pd.DataFrame([[v, a]], columns=pa_fields)
+        df_VA = change_df_accuracy(df_VA)
+        return df_VA
 
 
 class ModelClearFACSNeural(AbstractModel):
