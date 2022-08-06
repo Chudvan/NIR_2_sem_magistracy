@@ -361,9 +361,15 @@ def get_most_frequent(tempfile_list):
 def type_model_interface_key_to_type_model_key(key):
     return '_'.join(key.split(' ')[0].split('->'))
 
-def data_table_to_data_frame(rows, cols):
+def data_table_to_data_frame(rows, cols, T=False):
     cols = [c['name'] for c in cols]
     df = pd.DataFrame(rows, columns=cols)
+    if T:
+        df = df.T
+        rows = list(df.iterrows())
+        cols = list(rows[0][1])
+        vals = list(rows[1][1])
+        df = pd.DataFrame([vals], columns=cols)
     for c in cols:
         df[c] = df[c].apply(lambda x: float(x))
     return df
