@@ -129,20 +129,25 @@ class AbstractModel(ABC):
         pass
 
 
-def load_neural_model(self, path, model_attrs=None):
+def load_neural_models(self, path, model_attrs=None):
     dir_path = self.unzip_model(path)
-    print(dir_path)
-    """
-    if len(os.listdir(dir_path)) != 1:
-        raise Exception('Число папок с моделями != 1.')
-    full_path = os.path.join(dir_path, os.listdir(dir_path)[0])
-    try:
-        self._model = load_model(full_path)
-    except Exception:
-        shutil.rmtree(dir_path)
-        raise
+    if model_attrs is None:
+        model_attrs = self._get_model_attrs()
+    if len(os.listdir(dir_path)) < len(model_attrs):
+        raise Exception(f'Число моделей < {len(model_attrs)}.')
+    for model_attr in model_attrs:
+        model_filename = model_attr[1:]
+        full_path = os.path.join(dir_path, model_filename)
+        if not os.path.exists(full_path):
+            shutil.rmtree(dir_path)
+            raise Exception(f'Модель {model_filename} отсутствует в файле {self.filename}.')
+        try:
+            model_val = load_model(full_path)
+            setattr(self, model_attr, model_val)
+        except Exception:
+            shutil.rmtree(dir_path)
+            raise
     shutil.rmtree(dir_path)
-    """
 
 
 def load_stat_model(self, path, model_attrs=None):
@@ -175,7 +180,7 @@ class ModelVAClearNeural(AbstractModel):
         return '2->7 (Neural)'
 
     def loadmodel(self, path):
-        load_neural_model(self, path)
+        load_neural_models(self, path)
 
     def predict(self, df_VA):
         seven_vals = self._model.predict(df_VA.values)
@@ -223,7 +228,7 @@ class ModelClearVANeural(AbstractModel):
         return '7->2 (Neural)'
 
     def loadmodel(self, path):
-        load_neural_model(self, path)
+        load_neural_models(self, path)
 
     def predict(self, df_seven):
         VA_vals = self._model.predict(df_seven[df_seven.columns[:2]].values) # N без [df_seven.columns[:2]] для correct
@@ -269,7 +274,7 @@ class ModelClearFACSNeural(AbstractModel):
         return '7->42 (Neural)'
 
     def loadmodel(self, path):
-        load_neural_model(self, path)
+        load_neural_models(self, path)
 
     def predict(self, df_seven):
         pass
@@ -307,7 +312,7 @@ class ModelVAFACS(AbstractModel):
         return '2->42 (Stat)'
 
     def loadmodel(self, path):
-        load_neural_model(self, path)
+        load_neural_models(self, path)
         pass
 
     def predict(self, df_VA):
@@ -325,7 +330,7 @@ class ModelFACSVA(AbstractModel):
         return '42->2 (Stat)'
 
     def loadmodel(self, path):
-        load_neural_model(self, path)
+        load_neural_models(self, path)
         pass
 
     def predict(self, df_42):
