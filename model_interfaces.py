@@ -1,7 +1,7 @@
 import traceback
 from abc import ABC, abstractmethod
 from GUI.tools import seven_fields, type_model_dict, change_df_accuracy, \
-    type_model_interface_key_to_type_model_key, pa_fields
+    type_model_interface_key_to_type_model_key, pa_fields, get_model_type
 import tarfile
 import os
 import sys
@@ -297,8 +297,21 @@ class ModelVAFACS(AbstractModel):
         return '2->42 (Stat)'
 
     def loadmodel(self, path):
-        load_models(self, path)
-        pass
+        dir_path = self.unzip_model(path)
+        model_attrs = self._get_model_attrs()
+        try:
+            for model_attr in model_attrs:
+                model_filename = model_attr[1:] + '.tar.gz'
+                full_path = os.path.join(dir_path, model_filename)
+                model_type_file = get_model_type(model_filename, full_path)
+                model_attr_val = getattr(sys.modules[__name__],
+                                         type_model_interface_dict[model_type_file])(model_filename, full_path)
+                setattr(self, model_attr, model_attr_val)
+        except Exception:
+            print(traceback.format_exc())
+            shutil.rmtree(dir_path)
+            raise
+        shutil.rmtree(dir_path)
 
     def predict(self, df_VA):
         pass
