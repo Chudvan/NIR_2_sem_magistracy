@@ -129,7 +129,7 @@ class AbstractModel(ABC):
         pass
 
 
-def load_neural_models(self, path, model_attrs=None):
+def load_models(self, path, neural=True, model_attrs=None):
     dir_path = self.unzip_model(path)
     if model_attrs is None:
         model_attrs = self._get_model_attrs()
@@ -137,40 +137,26 @@ def load_neural_models(self, path, model_attrs=None):
         raise Exception(f'Число моделей < {len(model_attrs)}.')
     for model_attr in model_attrs:
         model_filename = model_attr[1:]
+        if not neural:
+            model_filename += '.pkl'
         full_path = os.path.join(dir_path, model_filename)
+        print(full_path)
         if not os.path.exists(full_path):
             shutil.rmtree(dir_path)
             raise Exception(f'Модель {model_filename} отсутствует в файле {self.filename}.')
         try:
-            model_val = load_model(full_path)
+            if neural:
+                model_val = load_model(full_path)
+            else:
+                with open(full_path, 'rb') as file:
+                    model_val = pickle.load(file)
             setattr(self, model_attr, model_val)
+            print(getattr(self, model_attr))
         except Exception:
+            print(traceback.format_exc())
             shutil.rmtree(dir_path)
-            raise
+            raise Exception(f'Не удаётся создать модель {model_filename}.')
     shutil.rmtree(dir_path)
-
-
-def load_stat_model(self, path, model_attrs=None):
-        dir_path = self.unzip_model(path)
-        """
-        model_attrs = self._get_model_attrs()
-        if len(os.listdir(dir_path)) != len(model_attrs):
-            raise Exception(f'Число моделей != {len(model_attrs)}.')
-        for model_attr in model_attrs:
-            model_filename = model_attr[1:] + '.pkl'
-            full_path = os.path.join(dir_path, model_filename)
-            if not os.path.exists(full_path):
-                shutil.rmtree(dir_path)
-                raise Exception(f'Модель {model_filename} отсутствует в файле {self.filename}.')
-            with open(full_path, 'rb') as file:
-                try:
-                    pickle_model = pickle.load(file)
-                    setattr(self, model_attr, pickle_model)
-                except pickle.UnpicklingError:
-                    shutil.rmtree(dir_path)
-                    raise Exception(f'Не удаётся создать модель {model_filename}.')
-        shutil.rmtree(dir_path)
-        """
 
 
 class ModelVAClearNeural(AbstractModel):
@@ -180,7 +166,7 @@ class ModelVAClearNeural(AbstractModel):
         return '2->7 (Neural)'
 
     def loadmodel(self, path):
-        load_neural_models(self, path)
+        load_models(self, path)
 
     def predict(self, df_VA):
         seven_vals = self._model.predict(df_VA.values)
@@ -205,8 +191,7 @@ class ModelVAClearStat(AbstractModel):
         return '2->7 (Stat)'
 
     def loadmodel(self, path):
-        load_stat_model(self, path)
-        print()
+        load_models(self, path, neural=False)
 
     def predict(self, df_VA):
         model_attrs = self._get_model_attrs()
@@ -228,7 +213,7 @@ class ModelClearVANeural(AbstractModel):
         return '7->2 (Neural)'
 
     def loadmodel(self, path):
-        load_neural_models(self, path)
+        load_models(self, path)
 
     def predict(self, df_seven):
         VA_vals = self._model.predict(df_seven[df_seven.columns[:2]].values) # N без [df_seven.columns[:2]] для correct
@@ -248,7 +233,7 @@ class ModelClearVAStat(AbstractModel):
         return '7->2 (Stat)'
 
     def loadmodel(self, path):
-        load_stat_model(self, path)
+        load_models(self, path, neural=False)
 
     def predict(self, df_seven):
         pass
@@ -274,7 +259,7 @@ class ModelClearFACSNeural(AbstractModel):
         return '7->42 (Neural)'
 
     def loadmodel(self, path):
-        load_neural_models(self, path)
+        load_models(self, path)
 
     def predict(self, df_seven):
         pass
@@ -295,7 +280,7 @@ class ModelFACSClearStat(AbstractModel):
         return '42->7 (Stat)'
 
     def loadmodel(self, path):
-        load_stat_model(self, path)
+        load_models(self, path, neural=False)
 
     def predict(self, df_42):
         pass
@@ -312,7 +297,7 @@ class ModelVAFACS(AbstractModel):
         return '2->42 (Stat)'
 
     def loadmodel(self, path):
-        load_neural_models(self, path)
+        load_models(self, path)
         pass
 
     def predict(self, df_VA):
@@ -330,7 +315,7 @@ class ModelFACSVA(AbstractModel):
         return '42->2 (Stat)'
 
     def loadmodel(self, path):
-        load_neural_models(self, path)
+        load_models(self, path)
         pass
 
     def predict(self, df_42):
