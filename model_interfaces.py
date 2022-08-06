@@ -159,6 +159,27 @@ def load_models(self, path, neural=True, model_attrs=None):
     shutil.rmtree(dir_path)
 
 
+def load_VA_and_FACS_model(self, path):
+    dir_path = self.unzip_model(path)
+    model_attrs = self._get_model_attrs()
+    try:
+        for model_attr in model_attrs:
+            model_filename = model_attr[1:] + '.tar.gz'
+            full_path = os.path.join(dir_path, model_filename)
+            print(full_path)
+            model_type_file = get_model_type(model_filename, full_path)
+            print(model_type_file)
+            model_attr_val = getattr(sys.modules[__name__],
+                                     type_model_interface_dict[model_type_file])(model_filename, full_path)
+            setattr(self, model_attr, model_attr_val)
+            print(model_attr, model_attr_val)
+    except Exception:
+        print(traceback.format_exc())
+        shutil.rmtree(dir_path)
+        raise
+    shutil.rmtree(dir_path)
+
+
 class ModelVAClearNeural(AbstractModel):
     @classmethod
     @property
@@ -297,21 +318,7 @@ class ModelVAFACS(AbstractModel):
         return '2->42 (Stat)'
 
     def loadmodel(self, path):
-        dir_path = self.unzip_model(path)
-        model_attrs = self._get_model_attrs()
-        try:
-            for model_attr in model_attrs:
-                model_filename = model_attr[1:] + '.tar.gz'
-                full_path = os.path.join(dir_path, model_filename)
-                model_type_file = get_model_type(model_filename, full_path)
-                model_attr_val = getattr(sys.modules[__name__],
-                                         type_model_interface_dict[model_type_file])(model_filename, full_path)
-                setattr(self, model_attr, model_attr_val)
-        except Exception:
-            print(traceback.format_exc())
-            shutil.rmtree(dir_path)
-            raise
-        shutil.rmtree(dir_path)
+        load_VA_and_FACS_model(self, path)
 
     def predict(self, df_VA):
         pass
@@ -328,8 +335,7 @@ class ModelFACSVA(AbstractModel):
         return '42->2 (Stat)'
 
     def loadmodel(self, path):
-        load_models(self, path)
-        pass
+        load_VA_and_FACS_model(self, path)
 
     def predict(self, df_42):
         pass
