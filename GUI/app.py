@@ -310,16 +310,20 @@ def change_disabled_button(model_type):
               State('dropdown', 'value'),
               State('input-table', 'data'),
               State('input-table', 'columns'),
-              State('output-table', 'data'))
+              State('output-table', 'data'),
+              State('input-graph', 'style'))
 def update_output_table(n_clicks, model_type_dropdown, rows_input,
-                        cols_input, rows_output):
+                        cols_input, rows_output, style):
     global N_CLICKS
     data = rows_output
     if n_clicks != N_CLICKS:
         type_model = model_type_dropdown.replace(' -> ', '_')
         model_attr_name = type_model_dict[type_model]
         model_attr_val = getattr(model_facade, model_attr_name)
-        df = data_table_to_data_frame(rows_input, cols_input)
+        if style is None:
+            df = data_table_to_data_frame(rows_input, cols_input)
+        else:
+            df = data_table_to_data_frame(rows_input, cols_input, T=True)
         output_df = model_attr_val.predict(df)
         data = data_frame_to_data_table(output_df)
         N_CLICKS = n_clicks

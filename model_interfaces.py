@@ -1,7 +1,9 @@
 import traceback
 from abc import ABC, abstractmethod
 from GUI.tools import seven_fields, type_model_dict, change_df_accuracy, \
-    type_model_interface_key_to_type_model_key, pa_fields, get_model_type
+    type_model_interface_key_to_type_model_key, pa_fields, get_model_type, \
+    happy_fields, sad_fields, surprised_fields, scared_fields, angry_fields, \
+    disgusted_fields, contempt_fields, other_facs_fields, all_unique_fields
 import tarfile
 import os
 import sys
@@ -289,6 +291,7 @@ class ModelClearFACSNeural(AbstractModel):
     def predict(self, df_seven):
         pass
 
+
 class ModelFACSClearStat(AbstractModel):
     _model_neutral = None
     _model_happy = None
@@ -308,7 +311,27 @@ class ModelFACSClearStat(AbstractModel):
         load_models(self, path, neural=False)
 
     def predict(self, df_42):
-        pass
+        happy_vals = df_42[happy_fields].values
+        sad_vals = df_42[sad_fields].values
+        surprised_vals = df_42[surprised_fields].values
+        scared_vals = df_42[scared_fields].values
+        angry_vals = df_42[angry_fields].values
+        disgusted_vals = df_42[disgusted_fields].values
+        all_unique_vals = df_42[all_unique_fields].values
+
+        neutral_res = self._model_neutral.predict([list(all_unique_vals[0][1:3])])[0][0] # N просто all_unique_vals для correct
+        happy_res = self._model_happy.predict([list(happy_vals[0][1:3])])[0][0] # аналогично
+        sad_res = self._model_sad.predict([list(sad_vals[0][1:3])])[0][0] # аналогично
+        angry_res = self._model_angry.predict([list(angry_vals[0][1:3])])[0][0] # аналогично
+        surprised_res = self._model_surprised.predict([list(surprised_vals[0][1:3])])[0][0] # аналогично
+        scared_res = self._model_scared.predict([list(scared_vals[0][1:3])])[0][0] # аналогично
+        disgusted_res = self._model_disgusted.predict([list(disgusted_vals[0][1:3])])[0][0] # аналогично
+
+        df_seven = pd.DataFrame([[neutral_res, happy_res, sad_res,
+                                  angry_res, surprised_res, scared_res,
+                                  disgusted_res]], columns=seven_fields)
+        df_seven = change_df_accuracy(df_seven)
+        return df_seven
 
 
 class ModelVAFACS(AbstractModel):
