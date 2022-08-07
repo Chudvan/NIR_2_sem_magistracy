@@ -71,6 +71,17 @@ facs_fields = [
     'Action_Unit_43___Right___Eyes_Closed'
 ]
 
+happy_fields = [facs_fields[i] for i in [4, 24, 35, 8, 26, 37]]
+sad_fields = [facs_fields[i] for i in [0, 20, 31, 2, 22, 33, 10, 28, 39]]
+surprised_fields = [facs_fields[i] for i in [0, 20, 31, 1, 21, 32, 3, 23, 34, 17]]
+scared_fields = [facs_fields[i] for i in
+                 [0, 20, 31, 1, 21, 32, 2, 22, 33, 3, 23, 34, 5, 25, 36, 13, 29, 40, 17]]
+angry_fields = [facs_fields[i] for i in [2, 22, 33, 3, 23, 34, 5, 25, 36, 14]]
+disgusted_fields = [facs_fields[i] for i in [6, 10, 28, 39]]
+contempt_fields = [facs_fields[i] for i in [8, 26, 37, 9, 27, 38]]
+other_facs_fields = [facs_fields[i] for i in [7, 11, 12, 15, 16, 18, 19, 30, 41]]
+all_unique_fileds = [facs_fields[i] for i in range(20)]
+
 model_types = [
     {'label': '2 -> 7', 'value': '2_7'},
     {'label': '7 -> 2', 'value': '7_2'},
