@@ -403,3 +403,6 @@ def change_df_accuracy(df, digits=2):
     for c in df.columns:
         df[c] = df[c].apply(lambda x: f"{x:.2f}")
     return df
+
+def cast_to_float(vals):
+    return [float(v) for v in vals]
