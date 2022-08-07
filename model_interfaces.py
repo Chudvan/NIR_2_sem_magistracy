@@ -287,28 +287,65 @@ class ModelClearFACSNeural(AbstractModel):
         load_models(self, path)
 
     def predict(self, df_seven):
-        res_42_vals = [0] * 42
         happy_vals = self._model_happy.predict([list(df_seven.values[0][1:3])])[0][:6] # N просто df_seven.values + без [:6] для correct
+        happy_vals = tools.cast_to_float(happy_vals)
         sad_vals = self._model_sad.predict([list(df_seven.values[0][1:3])])[0] # по аналогии
         sad_vals = list(sad_vals) # лишнее, для correct
         sad_vals += sad_vals[-2:] # чтобы dim совпадал
+        sad_vals = tools.cast_to_float(sad_vals)
         surprised_vals = self._model_surprised.predict([list(df_seven.values[0][1:3])])[0]
         surprised_vals = list(surprised_vals)
         surprised_vals +=  surprised_vals[-3:]
+        surprised_vals = tools.cast_to_float(surprised_vals)
         scared_vals = self._model_scared.predict([list(df_seven.values[0][1:3])])[0]
         scared_vals = list(scared_vals)
         scared_vals += scared_vals + scared_vals[-5:]
+        scared_vals = tools.cast_to_float(scared_vals)
         angry_vals = self._model_angry.predict([list(df_seven.values[0][1:3])])[0]
         angry_vals = list(angry_vals)
         angry_vals += angry_vals[-3:]
+        angry_vals = tools.cast_to_float(angry_vals)
         disgusted_vals = self._model_disgusted.predict([list(df_seven.values[0][1:3])])[0][-4:]
+        disgusted_vals = tools.cast_to_float(disgusted_vals)
         contempt_vals = self._model_contempt.predict([list(df_seven.values[0][1:3])])[0][-6:]
+        contempt_vals = tools.cast_to_float(contempt_vals)
         other_facs_vals = self._model_other_facs.predict([list(df_seven.values[0][1:3])])[0]
         other_facs_vals = list(other_facs_vals)
         other_facs_vals += other_facs_vals[-2:] # N до сюда - всё по аналогии, как выше
+        other_facs_vals = tools.cast_to_float(other_facs_vals)
 
         # 3 модели - использовать
-        pass
+        # собираем по индексам значения
+        _01_02_26_input = sad_vals[:3] + surprised_vals[:3] + scared_vals[:3] + \
+                          surprised_vals[3:6] + scared_vals[3:6] + surprised_vals[-1:] +\
+                          scared_vals[-1:]
+        _04_05_07_input = sad_vals[3:6] + scared_vals[6:9] + angry_vals[:3] + \
+                          surprised_vals[6:9] + scared_vals[9:12] + angry_vals[3:6] + \
+                          scared_vals[12:15] + angry_vals[6:9]
+        _12_15_input = happy_vals[3:6] + contempt_vals[:3] + sad_vals[6:9] + disgusted_vals[1:]
+
+        _01_02_26_output = list(self._model_sum_01_02_26.predict([_01_02_26_input[1:3]])[0]) # N без [1:3]
+        _04_05_07_output = list(self._model_sum_04_05_07.predict([_04_05_07_input[1:3]])[0]) # list() не нужен обычно
+        _04_05_07_output += _04_05_07_output[-2:] # лишнее, для correct
+        _12_15_output = list(self._model_sum_12_15.predict([_12_15_input[1:3]])[0][-6:]) # ещё без [-6:]
+
+        # конечный сбор (42)
+        res_42_vals = _01_02_26_output[:1] + _01_02_26_output[3:4] + _04_05_07_output[:1] + \
+                      _04_05_07_output[3:4] + happy_vals[:1] + _04_05_07_output[6:7] + \
+                      disgusted_vals[:1] + other_facs_vals[:1] + contempt_vals[:1] + \
+                      contempt_vals[3:4] + _12_15_output[3:4] + other_facs_vals[1:3] + \
+                      scared_vals[-4:-3] + angry_vals[-1:] + other_facs_vals[3:5] + \
+                      _01_02_26_output[-1:] + other_facs_vals[5:7] + _01_02_26_output[1:2] + \
+                      _01_02_26_output[4:5] + _04_05_07_output[1:2] + _04_05_07_output[4:5] + \
+                      happy_vals[1:2] + _04_05_07_output[-2:-1] + _12_15_output[1:2] + \
+                      contempt_vals[-2:-1] + _12_15_output[-2:-1] + scared_vals[-3:-2] + \
+                      other_facs_vals[-2:-1] + _01_02_26_output[2:3] + _01_02_26_output[-2:-1] + \
+                      _04_05_07_output[2:3] + _04_05_07_output[5:6] + happy_vals[2:3] + \
+                      _04_05_07_output[-1:] + _12_15_output[2:3] + contempt_vals[-1:] + \
+                      _12_15_output[-1:] + scared_vals[-2:-1] + other_facs_vals[-1:]
+        df_42 = pd.DataFrame([res_42_vals], columns=tools.facs_fields)
+        df_42 = tools.change_df_accuracy(df_42)
+        return df_42
 
 
 class ModelFACSClearStat(AbstractModel):
