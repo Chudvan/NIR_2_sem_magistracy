@@ -1,9 +1,7 @@
 import traceback
 from abc import ABC, abstractmethod
-from GUI.tools import seven_fields, type_model_dict, change_df_accuracy, \
-    type_model_interface_key_to_type_model_key, pa_fields, get_model_type, \
-    happy_fields, sad_fields, surprised_fields, scared_fields, angry_fields, \
-    disgusted_fields, contempt_fields, other_facs_fields, all_unique_fields
+import GUI.tools as tools
+
 import tarfile
 import os
 import sys
@@ -76,7 +74,7 @@ class ModelFacade:
         self._model_facs_va = model
 
     def predict(self, type_, input_df):
-        return getattr(self, type_model_dict[type_]).predict(input_df)
+        return getattr(self, tools.type_model_dict[type_]).predict(input_df)
 
 
 class AbstractModel(ABC):
@@ -91,8 +89,8 @@ class AbstractModel(ABC):
     @classmethod
     def unzip_model(cls, path):
         with tarfile.open(path, 'r:gz') as tar:
-            type_model = type_model_interface_key_to_type_model_key(cls.type_)
-            model_attr = type_model_dict[type_model]
+            type_model = tools.type_model_interface_key_to_type_model_key(cls.type_)
+            model_attr = tools.type_model_dict[type_model]
             dir_path = os.path.join(DIR_PATH, model_attr)
             if os.path.exists(dir_path):
                 shutil.rmtree(dir_path)
@@ -169,7 +167,7 @@ def load_VA_and_FACS_model(self, path):
             model_filename = model_attr[1:] + '.tar.gz'
             full_path = os.path.join(dir_path, model_filename)
             print(full_path)
-            model_type_file = get_model_type(model_filename, full_path)
+            model_type_file = tools.get_model_type(model_filename, full_path)
             print(model_type_file)
             model_attr_val = getattr(sys.modules[__name__],
                                      type_model_interface_dict[model_type_file])(model_filename, full_path)
@@ -193,8 +191,8 @@ class ModelVAClearNeural(AbstractModel):
 
     def predict(self, df_VA):
         seven_vals = self._model.predict(df_VA.values)
-        df_seven = pd.DataFrame(seven_vals, columns=seven_fields)
-        df_seven = change_df_accuracy(df_seven)
+        df_seven = pd.DataFrame(seven_vals, columns=tools.seven_fields)
+        df_seven = tools.change_df_accuracy(df_seven)
         return df_seven
 
 
@@ -222,10 +220,10 @@ class ModelVAClearStat(AbstractModel):
         for model_attr in model_attrs:
             field = model_attr[len(self._MODEL_ATTR_PREFIX):].capitalize()
             seven_dict[field] = getattr(self, model_attr).predict(df_VA.values)
-        seven_vals = [[seven_dict[field][0][i] for i, field in enumerate(seven_fields)]] # N без [0][i] для correct
-        #seven_dict = {field: seven_dict[field][0][i] for i, field in enumerate(seven_fields)} # по сути, не нужно уже
-        df_seven = pd.DataFrame(seven_vals, columns=seven_fields)
-        df_seven = change_df_accuracy(df_seven)
+        seven_vals = [[seven_dict[field][0][i] for i, field in enumerate(tools.seven_fields)]] # N без [0][i] для correct
+        #seven_dict = {field: seven_dict[field][0][i] for i, field in enumerate(tools.seven_fields)} # по сути, не нужно уже
+        df_seven = pd.DataFrame(seven_vals, columns=tools.seven_fields)
+        df_seven = tools.change_df_accuracy(df_seven)
         return df_seven
 
 
@@ -240,8 +238,8 @@ class ModelClearVANeural(AbstractModel):
 
     def predict(self, df_seven):
         VA_vals = self._model.predict(df_seven[df_seven.columns[:2]].values) # N без [df_seven.columns[:2]] для correct
-        df_VA = pd.DataFrame([VA_vals[0][:2]], columns=pa_fields) # N Просто VA_vals для correct
-        df_VA = change_df_accuracy(df_VA)
+        df_VA = pd.DataFrame([VA_vals[0][:2]], columns=tools.pa_fields) # N Просто VA_vals для correct
+        df_VA = tools.change_df_accuracy(df_VA)
         return df_VA
 
 
@@ -261,8 +259,8 @@ class ModelClearVAStat(AbstractModel):
     def predict(self, df_seven):
         v = self._model_valence.predict(df_seven[df_seven.columns[:2]].values)[0][0] # N без [df_seven.columns[:2]] и мб без [0] для correct
         a = self._model_arousal.predict(df_seven[df_seven.columns[2:4]].values)[0][0] # аналогично
-        df_VA = pd.DataFrame([[v, a]], columns=pa_fields)
-        df_VA = change_df_accuracy(df_VA)
+        df_VA = pd.DataFrame([[v, a]], columns=tools.pa_fields)
+        df_VA = tools.change_df_accuracy(df_VA)
         return df_VA
 
 
@@ -289,6 +287,27 @@ class ModelClearFACSNeural(AbstractModel):
         load_models(self, path)
 
     def predict(self, df_seven):
+        res_42_vals = [0] * 42
+        happy_vals = self._model_happy.predict([list(df_seven.values[0][1:3])])[0][:6] # N просто df_seven.values + без [:6] для correct
+        sad_vals = self._model_sad.predict([list(df_seven.values[0][1:3])])[0] # по аналогии
+        sad_vals = list(sad_vals) # лишнее, для correct
+        sad_vals += sad_vals[-2:] # чтобы dim совпадал
+        surprised_vals = self._model_surprised.predict([list(df_seven.values[0][1:3])])[0]
+        surprised_vals = list(surprised_vals)
+        surprised_vals +=  surprised_vals[-3:]
+        scared_vals = self._model_scared.predict([list(df_seven.values[0][1:3])])[0]
+        scared_vals = list(scared_vals)
+        scared_vals += scared_vals + scared_vals[-5:]
+        angry_vals = self._model_angry.predict([list(df_seven.values[0][1:3])])[0]
+        angry_vals = list(angry_vals)
+        angry_vals += angry_vals[-3:]
+        disgusted_vals = self._model_disgusted.predict([list(df_seven.values[0][1:3])])[0][-4:]
+        contempt_vals = self._model_contempt.predict([list(df_seven.values[0][1:3])])[0][-6:]
+        other_facs_vals = self._model_other_facs.predict([list(df_seven.values[0][1:3])])[0]
+        other_facs_vals = list(other_facs_vals)
+        other_facs_vals += other_facs_vals[-2:] # N до сюда - всё по аналогии, как выше
+
+        # 3 модели - использовать
         pass
 
 
@@ -311,13 +330,13 @@ class ModelFACSClearStat(AbstractModel):
         load_models(self, path, neural=False)
 
     def predict(self, df_42):
-        happy_vals = df_42[happy_fields].values
-        sad_vals = df_42[sad_fields].values
-        surprised_vals = df_42[surprised_fields].values
-        scared_vals = df_42[scared_fields].values
-        angry_vals = df_42[angry_fields].values
-        disgusted_vals = df_42[disgusted_fields].values
-        all_unique_vals = df_42[all_unique_fields].values
+        happy_vals = df_42[tools.happy_fields].values
+        sad_vals = df_42[tools.sad_fields].values
+        surprised_vals = df_42[tools.surprised_fields].values
+        scared_vals = df_42[tools.scared_fields].values
+        angry_vals = df_42[tools.angry_fields].values
+        disgusted_vals = df_42[tools.disgusted_fields].values
+        all_unique_vals = df_42[tools.all_unique_fields].values
 
         neutral_res = self._model_neutral.predict([list(all_unique_vals[0][1:3])])[0][0] # N просто all_unique_vals для correct
         happy_res = self._model_happy.predict([list(happy_vals[0][1:3])])[0][0] # аналогично
@@ -329,8 +348,8 @@ class ModelFACSClearStat(AbstractModel):
 
         df_seven = pd.DataFrame([[neutral_res, happy_res, sad_res,
                                   angry_res, surprised_res, scared_res,
-                                  disgusted_res]], columns=seven_fields)
-        df_seven = change_df_accuracy(df_seven)
+                                  disgusted_res]], columns=tools.seven_fields)
+        df_seven = tools.change_df_accuracy(df_seven)
         return df_seven
 
 
