@@ -241,14 +241,24 @@ def upload_model_changes(uploaded_filenames, uploaded_file_contents, model_type_
                 ERROR_STATE = True
                 return model_type_dropdown, displayed, message
             # Add model_file info
-        unique_model_types = set(map(lambda x: x[2], tempfile_list))
+        unique_types_model_interfaces = set(map(lambda x: x[2], tempfile_list))
         # Check all - unique
-        if len(unique_model_types) != len(tempfile_list):
+        if len(unique_types_model_interfaces) != len(tempfile_list):
             tools.delete_tempfiles(tempfile_list)
             displayed = True
-            most_frequent_t = tools.get_most_frequent(tempfile_list)
+            most_frequent_t = tools.get_most_frequent(tempfile_list, temp=True)
             message = f'Вы выбрали несколько моделей одинакового типа. \
 Модель типа {most_frequent_t[0]} встречается {most_frequent_t[1]} раз.'
+            ERROR_STATE = True
+            return model_type_dropdown, displayed, message
+        all_types_models = [tools.type_model_interface_key_to_type_model_key(m)
+                              for m in unique_types_model_interfaces]
+        if len(set(all_types_models)) != len(unique_types_model_interfaces):
+            tools.delete_tempfiles(tempfile_list)
+            displayed = True
+            most_frequent_t = tools.get_most_frequent(all_types_models)
+            message = f'Вы выбрали несколько моделей одинакового типа преобразования. \
+Модель типа {" -> ".join(most_frequent_t[0].split("_"))} встречается {most_frequent_t[1]} раз.'
             ERROR_STATE = True
             return model_type_dropdown, displayed, message
         cur_attrs_model_facade = {}

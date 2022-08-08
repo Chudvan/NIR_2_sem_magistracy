@@ -369,12 +369,18 @@ def delete_tempfiles(tempfile_list):
     for path_to_tempfile in list(map(lambda x: x[1], tempfile_list)):
         os.remove(path_to_tempfile)
 
-def get_most_frequent(tempfile_list):
+def get_most_frequent(list_, temp=False):
     d = {}
-    for t in tempfile_list:
-        if t[2] not in d:
-            d[t[2]] = 0
-        d[t[2]] += 1
+    if temp:
+        for t in list_:
+            if t[2] not in d:
+                d[t[2]] = 0
+            d[t[2]] += 1
+    else:
+        for e in list_:
+            if e not in d:
+                d[e] = 0
+            d[e] += 1
     return sorted(list(d.items()), key=lambda x: x[1])[-1]
 
 def type_model_interface_key_to_type_model_key(key):
