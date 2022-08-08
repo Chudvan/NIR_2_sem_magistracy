@@ -393,8 +393,14 @@ def data_table_to_data_frame(rows, cols, T=False):
         df[c] = df[c].apply(lambda x: float(x))
     return df
 
-def data_frame_to_data_table(df):
-    l = []
+def data_frame_to_data_table(df, T=False):
+    if T: # dim == 42
+        cols = df.columns
+        vals = df.values[0]
+        fields = ['Action name', 'Value']
+        data = [{fields[0]: col, fields[1]: val} for col, val in zip(cols, vals)]
+        return data
+    l = [] # dim == 2, dim == 7
     for row in df.iterrows():
         l.append(dict(row[1]))
     return l
