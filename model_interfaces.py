@@ -398,7 +398,7 @@ class ModelVAFACS(AbstractModel):
     @classmethod
     @property
     def type_(cls):
-        return '2->42 (Stat)'
+        return '2->42'
 
     def loadmodel(self, path):
         load_VA_and_FACS_model(self, path)
@@ -418,7 +418,7 @@ class ModelFACSVA(AbstractModel):
     @classmethod
     @property
     def type_(cls):
-        return '42->2 (Stat)'
+        return '42->2'
 
     def loadmodel(self, path):
         load_VA_and_FACS_model(self, path)
