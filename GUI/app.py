@@ -314,18 +314,23 @@ def update_output_table(n_clicks, model_type_dropdown, rows_input,
     global N_CLICKS
     data = rows_output
     if n_clicks != N_CLICKS:
-        type_model = model_type_dropdown.replace(' -> ', '_')
-        model_attr_name = tools.type_model_dict[type_model]
-        model_attr_val = getattr(model_facade, model_attr_name)
-        if style_input is None:
-            df = tools.data_table_to_data_frame(rows_input, cols_input)
-        else:
-            df = tools.data_table_to_data_frame(rows_input, cols_input, T=True)
-        output_df = model_attr_val.predict(df)
-        if style_output is None:
-            data = tools.data_frame_to_data_table(output_df)
-        else:
-            data = tools.data_frame_to_data_table(output_df, T=True)
+        try:
+            type_model = model_type_dropdown.replace(' -> ', '_')
+            model_attr_name = tools.type_model_dict[type_model]
+            model_attr_val = getattr(model_facade, model_attr_name)
+            if style_input is None:
+                df = tools.data_table_to_data_frame(rows_input, cols_input)
+            else:
+                df = tools.data_table_to_data_frame(rows_input, cols_input, T=True)
+            output_df = model_attr_val.predict(df)
+            if style_output is None:
+                data = tools.data_frame_to_data_table(output_df)
+            else:
+                data = tools.data_frame_to_data_table(output_df, T=True)
+        except Exception:
+            traceback.format_exc()
+            N_CLICKS = n_clicks
+            raise
         N_CLICKS = n_clicks
     return data
 
