@@ -424,7 +424,10 @@ class ModelFACSVA(AbstractModel):
         load_VA_and_FACS_model(self, path)
 
     def predict(self, df_42):
-        pass
+        df_seven = self._model_facs_clear.predict(df_42)
+        df_seven = pd.DataFrame([tools.cast_to_float(df_seven.values[0])], columns=tools.seven_fields)
+        df_VA = self._model_clear_va.predict(df_seven)
+        return df_VA
 
 
 def create_abstract_model_inheritors_list():
