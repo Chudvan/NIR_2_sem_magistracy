@@ -263,7 +263,7 @@ def upload_model_changes(uploaded_filenames, uploaded_file_contents, model_type_
                 model_attr_val = getattr(sys.modules[__name__],
                         type_model_interface_dict[model_type_file])(cur_filename, cur_path_to_tempfile)
                 setattr(model_facade, model_attr_name, model_attr_val)
-                tools.delete_tempfiles(tempfile_list)
+            tools.delete_tempfiles(tempfile_list)
         except Exception:
             # Error while creating one of model_facade's models
             print('Exception')
