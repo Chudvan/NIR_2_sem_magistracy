@@ -1,10 +1,6 @@
 from dash import Dash, dash_table, dcc, html, Input, Output, State
 import dash_bootstrap_components as dbc
-from tools import pa_fields, seven_fields, facs_fields, \
-    model_types, type_model_dict, create_tempfile_from_content, \
-    get_model_type, delete_tempfiles, get_most_frequent, \
-    type_model_interface_key_to_type_model_key, data_table_to_data_frame, \
-    data_frame_to_data_table
+import tools
 from model_interfaces import *
 import plotly.express as px
 import pandas as pd
@@ -28,14 +24,14 @@ def create_first_or_third(dim=None, first=True):
                         style={"height": "500px",
                             "border": "none"})
     if dim == 2:
-        fields = pa_fields
+        fields = tools.pa_fields
         data = [{f: 0 for f in fields}]
     elif dim == 7:
-        fields = seven_fields
+        fields = tools.seven_fields
         data = [{f: 0 for f in fields}]
     elif dim == 42:
         fields = ['Action name', 'Value']
-        data = [{fields[0]: f, fields[1]: 0} for f in facs_fields]
+        data = [{fields[0]: f, fields[1]: 0} for f in tools.facs_fields]
 
     editable = True if first else False
     data_table_id = 'input-table' if first else 'output-table'
@@ -92,7 +88,7 @@ def create_second():
                 dbc.Card(
                     dbc.CardBody([
                         dbc.Card(
-                            dcc.Dropdown(model_types,
+                            dcc.Dropdown(tools.model_types,
                                          placeholder="Выберите тип модели (преобразования)",
                                          id='dropdown'),
                         ),
@@ -234,12 +230,12 @@ def upload_model_changes(uploaded_filenames, uploaded_file_contents, model_type_
         tempfile_list = []
         global ERROR_STATE
         for name, data in zip(uploaded_filenames, uploaded_file_contents):
-            cur_path_to_tempfile = create_tempfile_from_content(data)
+            cur_path_to_tempfile = tools.create_tempfile_from_content(data)
             # Check model_type_file
-            model_type_file = get_model_type(name, cur_path_to_tempfile)
+            model_type_file = tools.get_model_type(name, cur_path_to_tempfile)
             tempfile_list.append((name, cur_path_to_tempfile, model_type_file))
             if not model_type_file:
-                delete_tempfiles(tempfile_list)
+                tools.delete_tempfiles(tempfile_list)
                 displayed = True
                 message = f'Модель {name} имеет некорректный формат.'
                 ERROR_STATE = True
@@ -248,9 +244,9 @@ def upload_model_changes(uploaded_filenames, uploaded_file_contents, model_type_
         unique_model_types = set(map(lambda x: x[2], tempfile_list))
         # Check all - unique
         if len(unique_model_types) != len(tempfile_list):
-            delete_tempfiles(tempfile_list)
+            tools.delete_tempfiles(tempfile_list)
             displayed = True
-            most_frequent_t = get_most_frequent(tempfile_list)
+            most_frequent_t = tools.get_most_frequent(tempfile_list)
             message = f'Вы выбрали несколько моделей одинакового типа. \
 Модель типа {most_frequent_t[0]} встречается {most_frequent_t[1]} раз.'
             ERROR_STATE = True
@@ -258,21 +254,21 @@ def upload_model_changes(uploaded_filenames, uploaded_file_contents, model_type_
         cur_attrs_model_facade = {}
         try:
             # Save current model_facade models (attrs)
-            for model_attr in type_model_dict.values():
+            for model_attr in tools.type_model_dict.values():
                 cur_attrs_model_facade[model_attr] = getattr(model_facade, model_attr)
             # Create new model_facade models (attrs)
             for cur_filename, cur_path_to_tempfile, model_type_file in tempfile_list:
-                type_model_key = type_model_interface_key_to_type_model_key(model_type_file)
-                model_attr_name = cur_attr = type_model_dict[type_model_key]
+                type_model_key = tools.type_model_interface_key_to_type_model_key(model_type_file)
+                model_attr_name = cur_attr = tools.type_model_dict[type_model_key]
                 model_attr_val = getattr(sys.modules[__name__],
                         type_model_interface_dict[model_type_file])(cur_filename, cur_path_to_tempfile)
                 setattr(model_facade, model_attr_name, model_attr_val)
-                delete_tempfiles(tempfile_list)
+                tools.delete_tempfiles(tempfile_list)
         except Exception:
             # Error while creating one of model_facade's models
             print('Exception')
             print(traceback.format_exc())
-            delete_tempfiles(tempfile_list)
+            tools.delete_tempfiles(tempfile_list)
             # Откат до cur_attrs_model_facade
             for model_attr_name, model_attr_val in cur_attrs_model_facade.items():
                 setattr(model_facade, model_attr_name, model_attr_val)
@@ -293,7 +289,7 @@ def change_disabled_button(model_type):
     if model_type is None:
         disabled_button = True
     else:
-        model_attr_val = getattr(model_facade, type_model_dict[model_type])
+        model_attr_val = getattr(model_facade, tools.type_model_dict[model_type])
         if model_attr_val is not None:
             disabled_button = False
             upload_children = html.Div(
@@ -319,17 +315,17 @@ def update_output_table(n_clicks, model_type_dropdown, rows_input,
     data = rows_output
     if n_clicks != N_CLICKS:
         type_model = model_type_dropdown.replace(' -> ', '_')
-        model_attr_name = type_model_dict[type_model]
+        model_attr_name = tools.type_model_dict[type_model]
         model_attr_val = getattr(model_facade, model_attr_name)
         if style_input is None:
-            df = data_table_to_data_frame(rows_input, cols_input)
+            df = tools.data_table_to_data_frame(rows_input, cols_input)
         else:
-            df = data_table_to_data_frame(rows_input, cols_input, T=True)
+            df = tools.data_table_to_data_frame(rows_input, cols_input, T=True)
         output_df = model_attr_val.predict(df)
         if style_output is None:
-            data = data_frame_to_data_table(output_df)
+            data = tools.data_frame_to_data_table(output_df)
         else:
-            data = data_frame_to_data_table(output_df, T=True)
+            data = tools.data_frame_to_data_table(output_df, T=True)
         N_CLICKS = n_clicks
     return data
 
