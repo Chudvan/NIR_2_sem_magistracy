@@ -130,15 +130,6 @@ def create_second():
     return second_card
 
 
-cards = dbc.CardGroup([
-    create_first_or_third(),
-    create_second(),
-    create_first_or_third(first=False)
-])
-
-app.layout = cards
-
-
 @app.callback(
     Output('first_col', 'children'),
     Output('third_col', 'children'),
@@ -344,6 +335,14 @@ def update_output_table(n_clicks, model_type_dropdown, rows_input,
         N_CLICKS = n_clicks
     return data
 
+
+cards = dbc.CardGroup([
+    create_first_or_third(),
+    create_second(),
+    create_first_or_third(first=False)
+])
+
+app.layout = cards
 
 if __name__ == '__main__':
     app.run_server(debug=True)
