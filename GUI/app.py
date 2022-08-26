@@ -275,7 +275,7 @@ def upload_model_changes(uploaded_filenames, uploaded_file_contents, model_type_
                 setattr(model_facade, model_attr_name, model_attr_val)
             # Window 'Cant create model...'
             displayed = True
-            message = f'Не удаётся создать модель типа {model_type_file} из файла {cur_filename}.'
+            message = f'Не удаётся создать модель вида {model_type_file} из файла {cur_filename}.'
             ERROR_STATE = True
     return model_type_dropdown, displayed, message
 
