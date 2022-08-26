@@ -238,8 +238,8 @@ def upload_model_changes(uploaded_filenames, uploaded_file_contents, model_type_
             tools.delete_tempfiles(tempfile_list)
             displayed = True
             most_frequent_t = tools.get_most_frequent(tempfile_list, temp=True)
-            message = f'Вы выбрали несколько моделей одинакового вида преобразования. \
-Модель вида преобразования {most_frequent_t[0]} встречается {most_frequent_t[1]} раз.'
+            message = f'Вы выбрали несколько моделей одинакового вида. \
+Модель вида {most_frequent_t[0]} встречается {most_frequent_t[1]} раз.'
             ERROR_STATE = True
             return model_type_dropdown, displayed, message
         all_types_models = [tools.type_model_interface_key_to_type_model_key(m)
