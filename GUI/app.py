@@ -238,8 +238,8 @@ def upload_model_changes(uploaded_filenames, uploaded_file_contents, model_type_
             tools.delete_tempfiles(tempfile_list)
             displayed = True
             most_frequent_t = tools.get_most_frequent(tempfile_list, temp=True)
-            message = f'Вы выбрали несколько моделей одинакового типа. \
-Модель типа {most_frequent_t[0]} встречается {most_frequent_t[1]} раз.'
+            message = f'Вы выбрали несколько моделей одинакового вида преобразования. \
+Модель вида преобразования {most_frequent_t[0]} встречается {most_frequent_t[1]} раз.'
             ERROR_STATE = True
             return model_type_dropdown, displayed, message
         all_types_models = [tools.type_model_interface_key_to_type_model_key(m)
@@ -248,7 +248,7 @@ def upload_model_changes(uploaded_filenames, uploaded_file_contents, model_type_
             tools.delete_tempfiles(tempfile_list)
             displayed = True
             most_frequent_t = tools.get_most_frequent(all_types_models)
-            message = f'Вы выбрали несколько моделей одинакового типа преобразования. \
+            message = f'Вы выбрали несколько моделей одинакового типа. \
 Модель типа {" -> ".join(most_frequent_t[0].split("_"))} встречается {most_frequent_t[1]} раз.'
             ERROR_STATE = True
             return model_type_dropdown, displayed, message
@@ -275,7 +275,7 @@ def upload_model_changes(uploaded_filenames, uploaded_file_contents, model_type_
                 setattr(model_facade, model_attr_name, model_attr_val)
             # Window 'Cant create model...'
             displayed = True
-            message = f'Не удаётся создать модель типа {cur_attr} из файла {cur_filename}.'
+            message = f'Не удаётся создать модель типа {model_type_file} из файла {cur_filename}.'
             ERROR_STATE = True
     return model_type_dropdown, displayed, message
 
