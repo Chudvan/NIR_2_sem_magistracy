@@ -250,8 +250,8 @@ class ModelClearVANeural(AbstractModel):
         load_models(self, path)
 
     def predict(self, df_seven):
-        VA_vals = self._model.predict(df_seven[df_seven.columns[:2]].values) # N без [df_seven.columns[:2]] для correct
-        df_VA = pd.DataFrame([VA_vals[0][:2]], columns=tools.pa_fields) # N Просто VA_vals для correct
+        VA_vals = self._model.predict(df_seven.values)
+        df_VA = pd.DataFrame(VA_vals, columns=tools.pa_fields)
         df_VA = tools.change_df_accuracy(df_VA)
         return df_VA
 
